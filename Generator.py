@@ -1,6 +1,6 @@
 import simpy
 import random
-import Job
+from Job import Job
 
 class Generator:
     """
@@ -36,7 +36,7 @@ class Generator:
             P = max(1, int(random.gauss(self.L, 5)))
             M = self.M_fn()
 
-            job = Job.Job(job_id=self.job_id, arrival_time=arrival_time, P=P, M=M)
+            job = Job(job_id=self.job_id, arrival_time=arrival_time, P=P, M=M)
             self.scheduler.add_job(job)
             self.generated_count += 1
 

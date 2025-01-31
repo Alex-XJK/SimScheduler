@@ -1,6 +1,6 @@
 from abc import abstractmethod
-import Memory
-import Job
+from Memory import Memory
+from Job import Job
 
 
 class Scheduler:
