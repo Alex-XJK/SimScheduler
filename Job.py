@@ -8,5 +8,32 @@ class Job:
     - finish_time: when it completed generating M tokens.
     """
 
+    def __init__(self, job_id, arrival_time, P, M):
+        self.job_id = job_id
+        self.P = P
+        self.M = M
+        self.current_size = P
+        # For statistics
+        self.arrival_time = arrival_time
+        self.start_time = None
+        self.finish_time = None
+
+    @property
+    def is_finished(self):
+        return self.current_size >= self.M
+
+    @property
+    def total_time_in_system(self):
+        if self.finish_time is not None:
+            return self.finish_time - self.arrival_time
+        return None
+
+    def step(self):
+        self.current_size += 1
+
     def __str__(self):
-        return "Job"
+        if self.is_finished:
+            return f"Job({self.job_id}): Finished at {self.finish_time}"
+        else:
+            progress = (self.current_size - self.P) / (self.M - self.P) * 100
+            return f"Job({self.job_id}): {progress:.2%} done"
