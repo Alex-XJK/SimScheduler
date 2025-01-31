@@ -98,5 +98,24 @@ class System:
         print("Simulation ended at time", self.env.now)
 
 
+    def report_stats(self):
+        """
+        Print or return some key metrics about job durations, wait times, etc.
+        """
+        all_jobs = self.completed_jobs
+        # Could also gather incomplete jobs if the simulation ended early
+
+        if not all_jobs:
+            print("No jobs completed!")
+            return
+
+        total_times = [job.total_time_in_system for job in all_jobs]
+        avg_ttis = sum(total_times) / len(total_times)
+        max_ttis = max(total_times)
+        print(f"Number of completed jobs: {len(all_jobs)}")
+        print(f"Average time in system: {avg_ttis:.2f}")
+        print(f"Tail time (max): {max_ttis:.2f}")
+
+
     def __str__(self):
         return "System"
