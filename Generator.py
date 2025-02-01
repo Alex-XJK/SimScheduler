@@ -1,3 +1,5 @@
+from itertools import count
+
 import simpy
 import random
 import logging
@@ -16,11 +18,17 @@ class Generator:
         self.env = env
         self.scheduler = scheduler
         self.speed = speed
+        self._slow_mode = False
+        if speed < 1:
+            self._slow_mode = True
+            self.speed = -speed
         self.total_limit = total
         self.avg_init_size = init_size
         self.final_size_fn = final_fn
         self.job_id = 1
         self.generated_count = 0
+        self._slow_mode_acc = self.speed
+
 
     def generate_jobs(self):
         """
@@ -28,7 +36,19 @@ class Generator:
         Generate up to S new jobs in one second.
         """
         tmp_cnt = 0
-        for _ in range(self.speed):
+
+        num_jobs_this_step = self.speed  # Generate `Speed` jobs per step
+
+        # Slow Mode: Generate 1 job per `speed` steps
+        if self._slow_mode:
+            if self._slow_mode_acc < self.speed:
+                self._slow_mode_acc += 1
+                return 0
+            else:
+                self._slow_mode_acc = 0
+            num_jobs_this_step = 1  # Generate 1 job per step
+
+        for _ in range(num_jobs_this_step):
             if self.is_finished:
                 break
 
@@ -52,4 +72,6 @@ class Generator:
         return self.generated_count >= self.total_limit
 
     def __str__(self):
-        return f"Generator: {self.speed} jobs/sec, {self.generated_count}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"
+        if self._slow_mode:
+            return f"Generator: 1 job per {self.speed} steps, {self.generated_count}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"
+        return f"Generator: {self.speed} jobs per step, {self.generated_count}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"
