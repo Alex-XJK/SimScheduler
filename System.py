@@ -1,7 +1,8 @@
 import simpy
 import logging
-from Memory import Memory
 from Generator import Generator
+from Memory import Memory
+from Scheduler import Scheduler
 
 
 class System:
@@ -9,17 +10,16 @@ class System:
     The main wrapper class for the system.
     """
 
-    def __init__(self, env, memory_capacity, scheduler_cls, scheduler_kwargs,
-                 generator_kwargs):
+    def __init__(self, env, memory : Memory, scheduler : Scheduler, generator : Generator):
         self.env = env
         # Create Memory
-        self.memory = Memory(env, memory_capacity)
+        self.memory = memory
 
         # Create concrete Scheduler
-        self.scheduler = scheduler_cls(env, self.memory, **scheduler_kwargs)
+        self.scheduler = scheduler
 
         # Create Generator
-        self.generator = Generator(env, self.scheduler, **generator_kwargs)
+        self.generator = generator
 
         # Bookkeeping for completed jobs
         self.completed_jobs = []
@@ -34,7 +34,8 @@ class System:
             self.generator.generate_jobs()
 
             # 2. Instruct the scheduler to run the next job
-            current_job = self.scheduler.pick_next_task()
+            current_job = self.scheduler.step()
+            logging.debug(f"Scheduler picked job: {current_job}")
 
             # 3. Check if we are done:
             if self.generator.is_finished and self.scheduler.num_jobs == 0:
@@ -45,9 +46,8 @@ class System:
             yield self.env.timeout(1)
 
         # End while
-        logging.info("Simulation ended at time", self.env.now)
+        logging.info(f"Simulation ended at time {self.env.now}")
         self.completed_jobs = self.scheduler.finished_jobs
-        self.report_stats()
 
 
     def report_stats(self):

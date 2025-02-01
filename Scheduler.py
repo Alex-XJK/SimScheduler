@@ -61,7 +61,7 @@ class Scheduler:
         # Run the job for 1 step
         if self.memory.available_tokens() >= 1:
             yield self.memory.request(1)
-            next_job.step()
+            next_job.advance()
         else:
             logging.warning("No jobs to run - No additional memory.")
             logging.info(f"Job({next_job.job_id}) waiting for 1 memory...")
@@ -76,7 +76,7 @@ class Scheduler:
         return next_job
 
     @abstractmethod
-    def pick_next_task(self):
+    def pick_next_task(self) -> Job:
         """
         Concrete subclasses must implement this method.
         Note: When called, the run_queue should never be empty.

@@ -12,13 +12,13 @@ class Generator:
     - M_fn: a function or distribution to pick final size M (or a fixed value).
     """
 
-    def __init__(self, env, scheduler, S, X, L, M_fn):
+    def __init__(self, env, scheduler, speed, total, init_size, final_fn):
         self.env = env
         self.scheduler = scheduler
-        self.speed = S
-        self.total_limit = X
-        self.avg_init_size = L
-        self.final_size_fn = M_fn
+        self.speed = speed
+        self.total_limit = total
+        self.avg_init_size = init_size
+        self.final_size_fn = final_fn
         self.job_id = 0
         self.generated_count = 0
 
@@ -51,4 +51,4 @@ class Generator:
         return self.generated_count >= self.total_limit
 
     def __str__(self):
-        return f"Generator: {self.speed} jobs/sec, {self.generate_jobs()}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"
+        return f"Generator: {self.speed} jobs/sec, {self.generated_count}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"

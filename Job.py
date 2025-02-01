@@ -28,7 +28,7 @@ class Job:
             return self.finish_time - self.arrival_time
         return None
 
-    def step(self):
+    def advance(self):
         self.current_size += 1
 
     def __str__(self):
