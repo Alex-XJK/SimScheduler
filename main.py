@@ -11,15 +11,15 @@ from RRSmartScheduler import RRSmartScheduler
 def main():
     # 1. Create SimPy Environment
     env = simpy.Environment()
-    logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     # 2. Define Memory Resource
     memory = Memory(env, capacity=100)
 
     # 3. Define Scheduler
-    # scheduler = FCFSScheduler(env, memory=memory)
+    scheduler = FCFSScheduler(env, memory=memory)
     # scheduler = RRScheduler(env, memory=memory, time_slice=1)
-    scheduler = RRSmartScheduler(env, memory=memory, time_slice=1, threshold=0.8)
+    # scheduler = RRSmartScheduler(env, memory=memory, time_slice=1, threshold=0.8)
 
     # 4. Define Generator
     def random_M():

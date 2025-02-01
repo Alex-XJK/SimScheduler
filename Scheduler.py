@@ -39,7 +39,7 @@ class Scheduler:
             logging.info("No jobs to run - Empty run queue.")
             return None
 
-        logging.info(f"Memory Status >> {self.memory}")
+        logging.debug(f"Memory Status >> {self.memory}")
 
         # Template Method pattern
         next_job = self.pick_next_task()
@@ -57,7 +57,7 @@ class Scheduler:
                 logging.info(f"Job({next_job.job_id}) starting...")
             else:
                 logging.warning("No jobs to run - Not enough initial memory.")
-                logging.info(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory...")
+                logging.debug(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory...")
                 return None
 
         # Run the job for 1 step
@@ -65,7 +65,7 @@ class Scheduler:
             next_job.advance()
         else:
             logging.warning("No jobs to run - No additional memory.")
-            logging.info(f"Job({next_job.job_id}) waiting for 1 memory...")
+            logging.debug(f"Job({next_job.job_id}) waiting for 1 memory...")
             return None
 
         # If job finished after this increment, mark finish time
