@@ -4,6 +4,7 @@ import logging
 from System import System
 from Memory import Memory
 from Generator import Generator
+from FCFSScheduler import FCFSScheduler
 from RRScheduler import RRScheduler
 from RRSmartScheduler import RRSmartScheduler
 
@@ -16,7 +17,8 @@ def main():
     memory = Memory(env, capacity=100)
 
     # 3. Define Scheduler
-    scheduler = RRScheduler(env, memory=memory, time_slice=1)
+    scheduler = FCFSScheduler(env, memory=memory)
+    # scheduler = RRScheduler(env, memory=memory, time_slice=1)
     # scheduler = RRSmartScheduler(env, memory=memory, time_slice=1, threshold=0.8)
 
     # 4. Define Generator
