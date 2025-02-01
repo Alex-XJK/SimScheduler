@@ -48,8 +48,19 @@ class Scheduler:
             logging.info("No jobs to run - Scheduler decision.")
             return None
 
+        # If this is a swapped out job, we need to re-allocate memory for it
+        if next_job.current_size == 0 and next_job.swap_size > 0 and next_job.start_time is not None:
+            if self.memory.request(next_job.swap_size):
+                next_job.current_size = next_job.swap_size
+                next_job.swap_size = 0
+                logging.debug(f"Job({next_job.job_id}) swapped back in...")
+            else:
+                logging.warning("No jobs to run - Not enough memory.")
+                logging.debug(f"Job({next_job.job_id}) waiting for {next_job.swap_size} memory...")
+                return None
+
         # First time running this job
-        if next_job.current_size == 0:
+        if next_job.current_size == 0 and next_job.start_time is None:
             if self.memory.request(next_job.init_size):
                 # Allocate memory for this new job
                 next_job.current_size = next_job.init_size

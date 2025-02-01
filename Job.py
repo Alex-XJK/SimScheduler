@@ -13,6 +13,7 @@ class Job:
         self.init_size = init_size
         self.final_size = init_size + expected_output
         self.current_size = 0
+        self.swap_size = 0  # For swapping-enabled schedulers only
         # For statistics
         self.arrival_time = arrival_time
         self.start_time = None
