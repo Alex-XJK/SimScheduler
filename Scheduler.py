@@ -77,6 +77,11 @@ class Scheduler:
 
     @abstractmethod
     def pick_next_task(self):
+        """
+        Concrete subclasses must implement this method.
+        Note: When called, the run_queue should never be empty.
+        :return: The next job to run.
+        """
         raise NotImplementedError("Subclasses should implement pick_next_task()")
 
     @property
