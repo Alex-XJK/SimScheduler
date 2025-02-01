@@ -5,6 +5,7 @@ from System import System
 from Memory import Memory
 from Generator import Generator
 from RRScheduler import RRScheduler
+from RRSmartScheduler import RRSmartScheduler
 
 def main():
     # 1. Create SimPy Environment
@@ -12,15 +13,16 @@ def main():
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
     # 2. Define Memory Resource
-    memory = Memory(env, capacity=200)
+    memory = Memory(env, capacity=100)
 
     # 3. Define Scheduler
     scheduler = RRScheduler(env, memory=memory, time_slice=1)
+    # scheduler = RRSmartScheduler(env, memory=memory, time_slice=1, threshold=0.8)
 
     # 4. Define Generator
     def random_M():
         return random.randint(10, 15)
-    generator = Generator(env, scheduler=scheduler, speed=2, total=10, init_size=5, final_fn=random_M)
+    generator = Generator(env, scheduler=scheduler, speed=2, total=10, init_size=50, final_fn=random_M)
 
     # 4. Create the System
     system = System(env, memory=memory, scheduler=scheduler, generator=generator)

@@ -19,7 +19,7 @@ class Generator:
         self.total_limit = total
         self.avg_init_size = init_size
         self.final_size_fn = final_fn
-        self.job_id = 0
+        self.job_id = 1
         self.generated_count = 0
 
     def generate_jobs(self):
@@ -32,7 +32,6 @@ class Generator:
             if self.is_finished:
                 break
 
-            self.job_id += 1
             arrival_time = self.env.now
 
             P = max(1, int(random.gauss(self.avg_init_size, 5)))
@@ -42,6 +41,7 @@ class Generator:
             if self.scheduler.add_job(job):
                 self.generated_count += 1
                 tmp_cnt += 1
+                self.job_id += 1
 
         if tmp_cnt > 0:
             logging.debug(f"Generator Status >> Generated {tmp_cnt} jobs this step.")

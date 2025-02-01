@@ -21,6 +21,11 @@ class Memory:
             raise ValueError("Releasing more tokens than capacity.")
         return self.vacancies
 
+    @property
+    def occupied_tokens(self):
+        return self.capacity - self.vacancies
+
+    @property
     def available_tokens(self):
         return self.vacancies
 
