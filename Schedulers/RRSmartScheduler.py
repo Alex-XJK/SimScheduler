@@ -8,7 +8,7 @@ class RRSmartScheduler(Scheduler):
     But stop accepting new jobs when the memory is (near) full.
     """
     def __init__(self, env, memory, time_slice=1, threshold=1.0):
-        super().__init__(env, memory, "Round Robin Smart")
+        super().__init__(env, memory, "RR-s")
         self.time_slice = time_slice
         self.threshold = threshold
 

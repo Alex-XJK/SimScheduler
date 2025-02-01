@@ -4,9 +4,9 @@ import logging
 from System import System
 from Memory import Memory
 from Generator import Generator
-from FCFSScheduler import FCFSScheduler
-from RRScheduler import RRScheduler
-from RRSmartScheduler import RRSmartScheduler
+from Schedulers.FCFSScheduler import FCFSScheduler
+from Schedulers.RRScheduler import RRScheduler
+from Schedulers.RRSmartScheduler import RRSmartScheduler
 
 def main():
     # 1. Create SimPy Environment
@@ -17,9 +17,9 @@ def main():
     memory = Memory(env, capacity=100)
 
     # 3. Define Scheduler
-    scheduler = FCFSScheduler(env, memory=memory)
+    # scheduler = FCFSScheduler(env, memory=memory)
     # scheduler = RRScheduler(env, memory=memory, time_slice=1)
-    # scheduler = RRSmartScheduler(env, memory=memory, time_slice=1, threshold=0.8)
+    scheduler = RRSmartScheduler(env, memory=memory, time_slice=1, threshold=0.8)
 
     # 4. Define Generator
     def random_M():

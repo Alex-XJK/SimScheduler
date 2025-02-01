@@ -6,7 +6,7 @@ class RRScheduler(Scheduler):
     A round-robin scheduler with a time slice.
     """
     def __init__(self, env, memory, time_slice=1):
-        super().__init__(env, memory, "Round Robin")
+        super().__init__(env, memory, "RR")
         self.time_slice = time_slice
 
     def pick_next_task(self):
