@@ -38,6 +38,8 @@ class Scheduler:
             logging.info("No jobs to run - Empty run queue.")
             return None
 
+        logging.info(f"Memory Status >> {self.memory}")
+
         # Template Method pattern
         next_job = self.pick_next_task()
 

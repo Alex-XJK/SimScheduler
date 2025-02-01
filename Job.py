@@ -8,10 +8,10 @@ class Job:
     - finish_time: when it completed generating M tokens.
     """
 
-    def __init__(self, job_id, arrival_time, P, M):
+    def __init__(self, job_id, arrival_time, init_size, expected_output):
         self.job_id = job_id
-        self.init_size = P
-        self.final_size = M
+        self.init_size = init_size
+        self.final_size = init_size + expected_output
         self.current_size = 0
         # For statistics
         self.arrival_time = arrival_time
@@ -36,4 +36,4 @@ class Job:
             return f"Job({self.job_id}): Finished at {self.finish_time}"
         else:
             progress = ((self.current_size - self.init_size) / (self.final_size - self.init_size)) * 100
-            return f"Job({self.job_id}): {progress:.2f}% done"
+            return f"Job({self.job_id}): [{self.init_size} --> {self.current_size} --> {self.final_size}] {progress:.1f}%"
