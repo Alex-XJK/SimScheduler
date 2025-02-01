@@ -11,19 +11,12 @@ class RRScheduler(Scheduler):
         self.current_index = 0  # track which job is next in round-robin order
 
 
-    def step(self):
+    def pick_next_task(self):
         """
         Each call picks the next job in run_queue (if any).
         If the current job is finished, remove it.
         Then pick the next job in RR order.
         """
-        # Clean up finished jobs first:
-        finished_jobs = [j for j in self.run_queue if j.is_finished]
-        for job in finished_jobs:
-            self.remove_job(job)
-
-        if not self.run_queue:
-            return None
 
         # Ensure current_index is valid
         self.current_index %= len(self.run_queue)

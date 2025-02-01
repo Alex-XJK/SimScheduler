@@ -1,3 +1,5 @@
+import simpy
+import logging
 from abc import abstractmethod
 from Memory import Memory
 from Job import Job
@@ -8,10 +10,12 @@ class Scheduler:
     Base Scheduler class.
     Manages a queue/list of waiting jobs and picks which job runs next.
     """
-    def __init__(self, env, memory):
+    def __init__(self, env, memory, name="Base Scheduler"):
+        self.name = name
         self.env = env
         self.memory : Memory = memory
         self.run_queue = []
+        self.finished_jobs = []
 
     def add_job(self, job : Job):
         self.run_queue.append(job)
@@ -19,12 +23,65 @@ class Scheduler:
     def remove_job(self, job : Job):
         if job in self.run_queue:
             self.run_queue.remove(job)
+            self.finished_jobs.append(job)
         else:
             raise ValueError("Job not in run queue.")
 
-    @abstractmethod
     def step(self):
-        raise NotImplementedError("Subclasses should implement step()")
+        # Clean up finished jobs first:
+        finished_jobs = [j for j in self.run_queue if j.is_finished]
+        for job in finished_jobs:
+            yield self.memory.release(job.current_size)
+            self.remove_job(job)
+
+        if not self.run_queue:
+            logging.info("No jobs to run - Empty run queue.")
+            return None
+
+        # Template Method pattern
+        next_job = self.pick_next_task()
+
+        if next_job is None:
+            logging.info("No jobs to run - Scheduler decision.")
+            return None
+
+        # First time running this job
+        if next_job.current_size == 0:
+            if self.memory.available_tokens() < next_job.init_size:
+                logging.warning("No jobs to run - Not enough initial memory.")
+                logging.info(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory...")
+                return None
+            else:
+                # Allocate memory for this new job
+                yield self.memory.request(next_job.init_size)
+                next_job.current_size = next_job.init_size
+                next_job.start_time = self.env.now
+                logging.info(f"Job({next_job.job_id}) starting...")
+
+        # Run the job for 1 step
+        if self.memory.available_tokens() >= 1:
+            yield self.memory.request(1)
+            next_job.step()
+        else:
+            logging.warning("No jobs to run - No additional memory.")
+            logging.info(f"Job({next_job.job_id}) waiting for 1 memory...")
+            return None
+
+        # If job finished after this increment, mark finish time
+        if next_job.is_finished:
+            next_job.finish_time = self.env.now
+            logging.info(f"Job({next_job.job_id}) finished.")
+
+        # Return the next(current) job and a list of finished jobs
+        return next_job
+
+    @abstractmethod
+    def pick_next_task(self):
+        raise NotImplementedError("Subclasses should implement pick_next_task()")
+
+    @property
+    def num_jobs(self):
+        return len(self.run_queue)
 
     def __str__(self):
-        return "Scheduler"
+        return f"{self.name}: {self.num_jobs} to run, {len(self.finished_jobs)} finished."

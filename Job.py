@@ -12,7 +12,7 @@ class Job:
         self.job_id = job_id
         self.init_size = P
         self.final_size = M
-        self.current_size = self.init_size
+        self.current_size = 0
         # For statistics
         self.arrival_time = arrival_time
         self.start_time = None
@@ -20,7 +20,7 @@ class Job:
 
     @property
     def is_finished(self):
-        return self.current_size >= self.final_size
+        return self.current_size >= self.final_size or self.finish_time is not None
 
     @property
     def total_time_in_system(self):
