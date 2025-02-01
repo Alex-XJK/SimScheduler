@@ -1,4 +1,5 @@
 import simpy
+import logging
 from Memory import Memory
 from Generator import Generator
 
@@ -26,6 +27,9 @@ class System:
 
     def run_simulation(self, max_time=1000):
         while self.env.now < max_time:
+            # 0. Print current time
+            logging.debug(f"---------- Time: {self.env.now} ----------")
+
             # 1. Generate new jobs for this step
             self.generator.generate_jobs()
 
@@ -48,7 +52,7 @@ class System:
 
                 # For simplicity, assume the job has already allocated its P tokens
                 # and each step we just try to allocate +1 token if it hasn't reached M
-                if job_to_run.current_size < job_to_run.M:
+                if job_to_run.current_size < job_to_run.final_size:
                     additional_needed = 1
                     # Check if memory is available
                     if self.memory.available_tokens() >= additional_needed:
@@ -87,7 +91,7 @@ class System:
                     j.current_size = 0
 
             # Check if we are done:
-            all_generated = (self.generator.generated_count >= self.generator.X)
+            all_generated = (self.generator.generated_count >= self.generator.total_limit)
             # Are there any unfinished jobs in the system?
             unfinished_jobs = any(not j.is_finished for j in self.scheduler.run_queue)
             if all_generated and not unfinished_jobs:

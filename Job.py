@@ -10,9 +10,9 @@ class Job:
 
     def __init__(self, job_id, arrival_time, P, M):
         self.job_id = job_id
-        self.P = P
-        self.M = M
-        self.current_size = P
+        self.init_size = P
+        self.final_size = M
+        self.current_size = self.init_size
         # For statistics
         self.arrival_time = arrival_time
         self.start_time = None
@@ -20,7 +20,7 @@ class Job:
 
     @property
     def is_finished(self):
-        return self.current_size >= self.M
+        return self.current_size >= self.final_size
 
     @property
     def total_time_in_system(self):
@@ -35,5 +35,5 @@ class Job:
         if self.is_finished:
             return f"Job({self.job_id}): Finished at {self.finish_time}"
         else:
-            progress = (self.current_size - self.P) / (self.M - self.P) * 100
+            progress = (self.current_size - self.init_size) / (self.final_size - self.init_size) * 100
             return f"Job({self.job_id}): {progress:.2%} done"

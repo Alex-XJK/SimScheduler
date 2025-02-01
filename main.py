@@ -1,11 +1,13 @@
 import simpy
 import random
+import logging
 from System import System
 from RRScheduler import RRScheduler
 
 def main():
     # 1. Create SimPy Environment
     env = simpy.Environment()
+    logging.basicConfig(level=logging.DEBUG)
 
     # 2. Define scheduling policy (Round-Robin with timeslice=1)
     scheduler_cls = RRScheduler
