@@ -52,7 +52,7 @@ class Scheduler:
                 logging.info(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory...")
                 return None
             else:
-                # Allocate memory for this new job
+                # Allocate memory for this new job 
                 yield self.memory.request(next_job.init_size)
                 next_job.current_size = next_job.init_size
                 next_job.start_time = self.env.now
