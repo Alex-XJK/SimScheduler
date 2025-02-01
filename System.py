@@ -36,39 +36,27 @@ class System:
             # 2. Instruct the scheduler to run the next job
             current_job = self.scheduler.pick_next_task()
 
-            # 3. Advance simulation time by 1 “second”
-            yield self.env.timeout(1)
-
-            # Check if we are done:
-            all_generated = (self.generator.generated_count >= self.generator.total_limit)
-            # Are there any unfinished jobs in the system?
-            unfinished_jobs = any(not j.is_finished for j in self.scheduler.run_queue)
-            if all_generated and not unfinished_jobs:
-                print(f"All jobs completed by time {self.env.now}")
+            # 3. Check if we are done:
+            if self.generator.is_finished and self.scheduler.num_jobs == 0:
+                logging.info(f"All jobs completed by time {self.env.now}")
                 break
 
+            # 4. Advance simulation time by 1 “second”
+            yield self.env.timeout(1)
+
         # End while
-        print("Simulation ended at time", self.env.now)
+        logging.info("Simulation ended at time", self.env.now)
+        self.completed_jobs = self.scheduler.finished_jobs
+        self.report_stats()
 
 
     def report_stats(self):
-        """
-        Print or return some key metrics about job durations, wait times, etc.
-        """
-        all_jobs = self.completed_jobs
-        # Could also gather incomplete jobs if the simulation ended early
-
-        if not all_jobs:
-            print("No jobs completed!")
-            return
-
-        total_times = [job.total_time_in_system for job in all_jobs]
-        avg_ttis = sum(total_times) / len(total_times)
-        max_ttis = max(total_times)
-        print(f"Number of completed jobs: {len(all_jobs)}")
-        print(f"Average time in system: {avg_ttis:.2f}")
-        print(f"Tail time (max): {max_ttis:.2f}")
+        print("Simulation Results:")
+        print(f"Total Time Elapsed: {self.env.now}")
+        print(f"Total Jobs Started: {self.generator.generated_count}")
+        print(f"Total Jobs Completed: {len(self.completed_jobs)}")
+        print(f"Total Jobs Remaining: {self.scheduler.num_jobs}")
 
 
     def __str__(self):
-        return "System"
+        return "System Report:\n" + str(self.memory) + "\n" + str(self.scheduler) + "\n" + str(self.generator)

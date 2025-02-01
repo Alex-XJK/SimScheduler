@@ -29,7 +29,7 @@ class Generator:
         """
         tmp_cnt = 0
         for _ in range(self.speed):
-            if self.generated_count >= self.total_limit:
+            if self.is_finished:
                 break
 
             self.job_id += 1
@@ -46,6 +46,9 @@ class Generator:
         logging.debug(f"Generated {tmp_cnt} jobs this step.")
         return tmp_cnt
 
+    @property
+    def is_finished(self):
+        return self.generated_count >= self.total_limit
 
     def __str__(self):
         return f"Generator: {self.speed} jobs/sec, {self.generate_jobs()}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"
