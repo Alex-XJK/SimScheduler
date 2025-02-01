@@ -27,11 +27,11 @@ class Scheduler:
         else:
             raise ValueError("Job not in run queue.")
 
-    def step(self):
+    def step(self) -> Job | None:
         # Clean up finished jobs first:
         finished_jobs = [j for j in self.run_queue if j.is_finished]
         for job in finished_jobs:
-            yield self.memory.release(job.current_size)
+            self.memory.release(job.current_size)
             self.remove_job(job)
 
         if not self.run_queue:
@@ -47,20 +47,18 @@ class Scheduler:
 
         # First time running this job
         if next_job.current_size == 0:
-            if self.memory.available_tokens() < next_job.init_size:
-                logging.warning("No jobs to run - Not enough initial memory.")
-                logging.info(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory...")
-                return None
-            else:
-                # Allocate memory for this new job 
-                yield self.memory.request(next_job.init_size)
+            if self.memory.request(next_job.init_size):
+                # Allocate memory for this new job
                 next_job.current_size = next_job.init_size
                 next_job.start_time = self.env.now
                 logging.info(f"Job({next_job.job_id}) starting...")
+            else:
+                logging.warning("No jobs to run - Not enough initial memory.")
+                logging.info(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory...")
+                return None
 
         # Run the job for 1 step
-        if self.memory.available_tokens() >= 1:
-            yield self.memory.request(1)
+        if self.memory.request(1):
             next_job.advance()
         else:
             logging.warning("No jobs to run - No additional memory.")

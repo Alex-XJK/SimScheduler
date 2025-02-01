@@ -9,17 +9,17 @@ from RRScheduler import RRScheduler
 def main():
     # 1. Create SimPy Environment
     env = simpy.Environment()
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
     # 2. Define Memory Resource
-    memory = Memory(env, capacity=50)
+    memory = Memory(env, capacity=100)
 
     # 3. Define Scheduler
     scheduler = RRScheduler(env, memory=memory, time_slice=1)
 
     # 4. Define Generator
     def random_M():
-        return random.randint(5, 10)
+        return random.randint(10, 20)
     generator = Generator(env, scheduler=scheduler, speed=2, total=10, init_size=5, final_fn=random_M)
 
     # 4. Create the System

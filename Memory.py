@@ -1,5 +1,3 @@
-import simpy
-
 class Memory:
     """
     Simulated shared resource that can hold up to `capacity` tokens total.
@@ -8,16 +6,23 @@ class Memory:
     def __init__(self, env, capacity):
         self.env = env
         self.capacity = capacity
-        self.container = simpy.Container(env, init=capacity, capacity=capacity)
+        self.vacancies = capacity
 
     def request(self, amount):
-        return self.container.get(amount)
+        if amount > self.vacancies:
+            return False
+        else:
+            self.vacancies -= amount
+            return True
 
     def release(self, amount):
-        return self.container.put(amount)
+        self.vacancies += amount
+        if self.vacancies > self.capacity:
+            raise ValueError("Releasing more tokens than capacity.")
+        return self.vacancies
 
     def available_tokens(self):
-        return self.container.level
+        return self.vacancies
 
     def __str__(self):
-        return f"Memory: {self.available_tokens()}/{self.capacity} tokens available"
+        return f"Memory: {self.vacancies}/{self.capacity} tokens available"

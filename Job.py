@@ -35,5 +35,5 @@ class Job:
         if self.is_finished:
             return f"Job({self.job_id}): Finished at {self.finish_time}"
         else:
-            progress = (self.current_size - self.init_size) / (self.final_size - self.init_size) * 100
-            return f"Job({self.job_id}): {progress:.2%} done"
+            progress = ((self.current_size - self.init_size) / (self.final_size - self.init_size)) * 100
+            return f"Job({self.job_id}): {progress:.2f}% done"
