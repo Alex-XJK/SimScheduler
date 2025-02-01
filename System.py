@@ -51,11 +51,44 @@ class System:
 
 
     def report_stats(self):
-        print("Simulation Results:")
-        print(f"Total Time Elapsed: {self.env.now}")
-        print(f"Total Jobs Started: {self.generator.generated_count}")
-        print(f"Total Jobs Completed: {len(self.completed_jobs)}")
-        print(f"Total Jobs Remaining: {self.scheduler.num_jobs}")
+        print("---------- Simulation Results ----------")
+        print("Total Time Elapsed:", self.env.now)
+        print("Total Jobs Started:", self.generator.generated_count)
+        print("Total Jobs Completed:", len(self.completed_jobs))
+        print("Total Jobs Remaining:", self.scheduler.num_jobs)
+
+        if len(self.completed_jobs) == 0:
+            print("No jobs completed!")
+            return
+
+        waiting_times = [job.start_time - job.arrival_time for job in self.completed_jobs]
+        turnaround_times = [job.finish_time - job.arrival_time for job in self.completed_jobs]
+        service_times = [job.finish_time - job.start_time for job in self.completed_jobs]
+
+        average_waiting_time = sum(waiting_times) / len(waiting_times)
+        average_turnaround_time = sum(turnaround_times) / len(turnaround_times)
+        average_service_time = sum(service_times) / len(service_times)
+        throughput = len(self.completed_jobs) / int(self.env.now)
+
+        max_turnaround_time = max(turnaround_times)
+        turnaround_times_sorted = sorted(turnaround_times)
+        p95_index = int(0.95 * len(turnaround_times_sorted))
+        p95_turnaround = turnaround_times_sorted[p95_index]
+
+        # Compute slowdown for each job (avoid division by zero)
+        slowdowns = [
+            (tt / st) if st > 0 else 0
+            for tt, st in zip(turnaround_times, service_times)
+        ]
+        average_slowdown = sum(slowdowns) / len(slowdowns)
+
+        print("Average Waiting Time:", average_waiting_time)
+        print("Average Turnaround Time:", average_turnaround_time)
+        print("Average Service Time:", average_service_time)
+        print("Throughput:", throughput)
+        print("Max Turnaround Time (Tail Latency):", max_turnaround_time)
+        print("95th Percentile Turnaround Time:", p95_turnaround)
+        print("Average Slowdown:", average_slowdown)
 
 
     def __str__(self):
