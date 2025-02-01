@@ -17,8 +17,9 @@ class Scheduler:
         self.run_queue = []
         self.finished_jobs = []
 
-    def add_job(self, job : Job):
+    def add_job(self, job : Job) -> bool:
         self.run_queue.append(job)
+        return True
 
     def remove_job(self, job : Job):
         if job in self.run_queue:

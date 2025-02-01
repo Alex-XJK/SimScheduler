@@ -39,9 +39,9 @@ class Generator:
             M = self.final_size_fn()
 
             job = Job(job_id=self.job_id, arrival_time=arrival_time, init_size=P, expected_output=M)
-            self.scheduler.add_job(job)
-            self.generated_count += 1
-            tmp_cnt += 1
+            if self.scheduler.add_job(job):
+                self.generated_count += 1
+                tmp_cnt += 1
 
         if tmp_cnt > 0:
             logging.debug(f"Generator Status >> Generated {tmp_cnt} jobs this step.")
