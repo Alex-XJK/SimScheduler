@@ -15,7 +15,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
     # 2. Define Memory Resource
-    memory = Memory(env, capacity=60000)
+    memory = Memory(env, capacity=300000)
 
     # 3. Define Scheduler
     # scheduler = FCFSScheduler(env, memory=memory)
@@ -25,8 +25,8 @@ def main():
 
     # 4. Define Generator
     def random_M():
-        return random.randint(256, 2048)
-    generator = Generator(env, scheduler=scheduler, speed=1, total=100, init_size=512, final_fn=random_M)
+        return random.randint(1024, 8192)
+    generator = Generator(env, scheduler=scheduler, speed=8, total=100, init_size=1024, final_fn=random_M)
 
     # 4. Create the System
     system = System(env, memory=memory, scheduler=scheduler, generator=generator)
