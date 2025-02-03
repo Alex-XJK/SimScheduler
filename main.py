@@ -21,7 +21,7 @@ def main():
     # scheduler = FCFSScheduler(env, memory=memory)
     # scheduler = RRScheduler(env, memory=memory, time_slice=1)
     # scheduler = RRRejectScheduler(env, memory=memory, time_slice=100, threshold=0.7)
-    scheduler = RRSwapScheduler(env, memory=memory, time_slice=100, threshold=0.7)
+    scheduler = RRSwapScheduler(env, memory=memory, time_slice=100, threshold=0.9)
 
     # 4. Define Generator
     def random_M():
