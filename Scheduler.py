@@ -96,6 +96,29 @@ class Scheduler:
         """
         raise NotImplementedError("Subclasses should implement pick_next_task()")
 
+    def _get_expected_memory(self):
+        """
+        Calculate the expected memory usage of the run queue.
+        :return: Total expected memory usage.
+        """
+        total_expected_memory = 0
+        for job in self.run_queue:
+            if job.current_size == 0:
+                total_expected_memory += job.init_size
+            else:
+                total_expected_memory += job.current_size
+        return total_expected_memory
+
+    def _get_real_memory(self):
+        """
+        Calculate the real memory usage of the run queue.
+        :return: Total real memory usage.
+        """
+        total_real_memory = 0
+        for job in self.run_queue:
+            total_real_memory += job.current_size
+        return total_real_memory
+
     @property
     def num_jobs(self):
         return len(self.run_queue)

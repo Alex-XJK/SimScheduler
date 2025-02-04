@@ -13,21 +13,16 @@ class RRSwapScheduler(Scheduler):
         self.time_slice = time_slice
         self.threshold = threshold
 
-    def _get_expected_memory(self):
-        total_expected_memory = 0
-        for job in self.run_queue:
-            if job.current_size == 0:
-                total_expected_memory += job.init_size
-            else:
-                total_expected_memory += job.current_size
-        return total_expected_memory
 
     def _find_target_job(self):
+        """
+        Find the last job in the run queue that occupies memory.
+        :return: int - index of the job in the run queue
+        """
         for i in range(len(self.run_queue)-1, 0, -1):
             if self.run_queue[i].current_size > 0:
                 return i
         return None
-
 
     def add_job(self, job):
         # Check if we have enough memory to accept this new job

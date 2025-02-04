@@ -12,15 +12,6 @@ class RRRejectScheduler(Scheduler):
         self.time_slice = time_slice
         self.threshold = threshold
 
-    def _get_expected_memory(self):
-        total_expected_memory = 0
-        for job in self.run_queue:
-            if job.current_size == 0:
-                total_expected_memory += job.init_size
-            else:
-                total_expected_memory += job.current_size
-        return total_expected_memory
-
     def add_job(self, job):
         # Check if we have enough memory to accept this new job
         if job.init_size <= self.memory.capacity * self.threshold - self._get_expected_memory():
