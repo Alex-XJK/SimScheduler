@@ -13,6 +13,8 @@ class RRSwapScheduler(Scheduler):
         self.time_slice = time_slice
         self.threshold = threshold
 
+    def introduction(self):
+        return "Round Robin, rejecting new jobs when memory is full, swapping out jobs when memory is full."
 
     def _find_target_job(self):
         """

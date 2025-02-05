@@ -53,9 +53,7 @@ class System:
     def report_stats(self):
         print("---------- Simulation Results ----------")
         print("Total Time Elapsed:", self.env.now)
-        print("Total Jobs Started:", self.generator.generated_count)
-        print("Total Jobs Completed:", len(self.completed_jobs))
-        print("Total Jobs Remaining:", self.scheduler.num_jobs)
+        print("Total Jobs Started:", self.generator.generated_count, ", Completed ", len(self.completed_jobs), " Remaining ", self.scheduler.num_jobs)
 
         if len(self.completed_jobs) == 0:
             print("No jobs completed!")
@@ -92,4 +90,4 @@ class System:
 
 
     def __str__(self):
-        return "System Report:\n" + str(self.memory) + "\n" + str(self.scheduler) + "\n" + str(self.generator)
+        return "System Report:\n\t" + str(self.memory) + "\n\t" + str(self.generator) + "\n\t" + str(self.scheduler)

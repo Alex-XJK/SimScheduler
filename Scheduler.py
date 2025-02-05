@@ -115,5 +115,13 @@ class Scheduler:
     def num_jobs(self):
         return len(self.run_queue)
 
+    @abstractmethod
+    def introduction(self) -> str:
+        """
+        Concrete subclasses must implement this method.
+        :return: A string introducing the scheduler.
+        """
+        raise NotImplementedError("Subclasses should implement introduction()")
+
     def __str__(self):
         return f"{self.name}: {self.num_jobs} to run, {len(self.finished_jobs)} finished."

@@ -41,6 +41,7 @@ def main():
 
     # 6. Print results
     print(system)
+    print(scheduler.introduction())
     system.report_stats()
 
 

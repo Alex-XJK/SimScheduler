@@ -12,6 +12,9 @@ class RRRejectScheduler(Scheduler):
         self.time_slice = time_slice
         self.threshold = threshold
 
+    def introduction(self):
+        return "Round Robin, rejecting new jobs when memory is full."
+
     def add_job(self, job):
         # Check if we have enough memory to accept this new job
         if job.init_size <= self.memory.capacity * self.threshold - self._get_expected_memory():

@@ -9,6 +9,9 @@ class RRScheduler(Scheduler):
         super().__init__(env, memory, "RR")
         self.time_slice = time_slice
 
+    def introduction(self):
+        return "Basic Round Robin Scheduler"
+
     def pick_next_task(self):
         # Each every time slice, we modify the run queue to dequeue the first job and enqueue it at the end.
         next_job = self.run_queue[0]

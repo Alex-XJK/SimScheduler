@@ -14,6 +14,8 @@ class RRWaitSwapScheduler(Scheduler):
         self.threshold = threshold
         self.wait_queue = []
 
+    def introduction(self):
+        return "Round Robin, push new jobs to wait queue when memory is full, swap out jobs when memory is full."
 
     def _find_target_job(self):
         """
