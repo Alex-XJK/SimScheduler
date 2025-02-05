@@ -6,12 +6,9 @@ import logging
 from System import System
 from Memory import Memory
 from Generator import Generator
-from Schedulers.FCFSScheduler import FCFSScheduler
-from Schedulers.RRScheduler import RRScheduler
-from Schedulers.RRRejectScheduler import RRRejectScheduler
-from Schedulers.RRSwapScheduler import RRSwapScheduler
-from Schedulers.RRWaitSwapScheduler import RRWaitSwapScheduler
-from Schedulers.SRPTScheduler import SRPTScheduler
+from Schedulers.FCFS import FCFSScheduler
+from Schedulers.RRWaitSwap import RRWaitSwapScheduler
+from Schedulers.SRPT import SRPTScheduler
 
 
 def main(scheduler_type="FCFS"):

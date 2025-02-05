@@ -38,5 +38,5 @@ The calculations are done in the `report_stats` function of `System` class.
 5. Optionally, override other methods to customize behavior.
 6. Add your scheduler to the `main.py` file.
 
-See `~/Schedulers/FCFSScheduler.py` for a minimal example.
+See `~/Schedulers/FCFS.py` for a minimal example.
 
