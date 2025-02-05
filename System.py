@@ -80,12 +80,32 @@ class System:
         ]
         average_slowdown = sum(slowdowns) / len(slowdowns)
 
+        """
+        Waiting Time    = [start - arrival]
+        """
         print("Average Waiting Time:", average_waiting_time)
+
+        """
+        Turnaround Time = [finish - arrival]
+        """
         print("Average Turnaround Time:", average_turnaround_time)
-        print("Average Service Time:", average_service_time)
-        print("Throughput:", throughput)
         print("Max Turnaround Time (Tail Latency):", max_turnaround_time)
         print("95th Percentile Turnaround Time:", p95_turnaround)
+
+        """
+        Service Time    = [finish - start]
+        """
+        print("Average Service Time:", average_service_time)
+
+        """
+        Throughput      = [jobs completed / total time]
+        """
+        print("Throughput:", throughput)
+
+        """
+        Slowdown        = [turnaround / service]
+                        = [finish - arrival / finish - start]
+        """
         print("Average Slowdown:", average_slowdown)
 
 

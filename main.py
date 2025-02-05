@@ -1,3 +1,5 @@
+from sched import scheduler
+
 import simpy
 import random
 import logging
@@ -11,7 +13,8 @@ from Schedulers.RRSwapScheduler import RRSwapScheduler
 from Schedulers.RRWaitSwapScheduler import RRWaitSwapScheduler
 from Schedulers.SRPTScheduler import SRPTScheduler
 
-def main():
+
+def main(scheduler_type="FCFS"):
     # 1. Create SimPy Environment
     env = simpy.Environment()
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
@@ -20,12 +23,14 @@ def main():
     memory = Memory(env, capacity=300000)
 
     # 3. Define Scheduler
-    # scheduler = FCFSScheduler(env, memory=memory)
-    # scheduler = RRScheduler(env, memory=memory, time_slice=1)
-    # scheduler = RRRejectScheduler(env, memory=memory, time_slice=100, threshold=0.7)
-    # scheduler = RRSwapScheduler(env, memory=memory, time_slice=100, threshold=0.9)
-    scheduler = RRWaitSwapScheduler(env, memory=memory, time_slice=100, threshold=0.9)
-    # scheduler = SRPTScheduler(env, memory=memory)
+    if scheduler_type == "FCFS":
+        scheduler = FCFSScheduler(env, memory=memory)
+    elif scheduler_type == "RR":
+        scheduler = RRWaitSwapScheduler(env, memory=memory, time_slice=10, threshold=0.9)
+    elif scheduler_type == "SRPT":
+        scheduler = SRPTScheduler(env, memory=memory)
+    else:
+        raise ValueError("Unknown scheduler type")
 
     # 4. Define Generator
     def random_M():
@@ -46,4 +51,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
+
+    main(scheduler_type)
