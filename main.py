@@ -8,6 +8,7 @@ from Schedulers.FCFSScheduler import FCFSScheduler
 from Schedulers.RRScheduler import RRScheduler
 from Schedulers.RRRejectScheduler import RRRejectScheduler
 from Schedulers.RRSwapScheduler import RRSwapScheduler
+from Schedulers.RRWaitSwapScheduler import RRWaitSwapScheduler
 from Schedulers.SRPTScheduler import SRPTScheduler
 
 def main():
@@ -23,7 +24,8 @@ def main():
     # scheduler = RRScheduler(env, memory=memory, time_slice=1)
     # scheduler = RRRejectScheduler(env, memory=memory, time_slice=100, threshold=0.7)
     # scheduler = RRSwapScheduler(env, memory=memory, time_slice=100, threshold=0.9)
-    scheduler = SRPTScheduler(env, memory=memory)
+    scheduler = RRWaitSwapScheduler(env, memory=memory, time_slice=100, threshold=0.9)
+    # scheduler = SRPTScheduler(env, memory=memory)
 
     # 4. Define Generator
     def random_M():
