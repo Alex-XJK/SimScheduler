@@ -99,6 +99,7 @@ class Scheduler:
     def _get_expected_memory(self):
         """
         Calculate the expected memory usage of the run queue.
+        Includes currently running jobs and jobs that are not yet running.
         :return: Total expected memory usage.
         """
         total_expected_memory = 0
@@ -109,15 +110,6 @@ class Scheduler:
                 total_expected_memory += job.current_size
         return total_expected_memory
 
-    def _get_real_memory(self):
-        """
-        Calculate the real memory usage of the run queue.
-        :return: Total real memory usage.
-        """
-        total_real_memory = 0
-        for job in self.run_queue:
-            total_real_memory += job.current_size
-        return total_real_memory
 
     @property
     def num_jobs(self):
