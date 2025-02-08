@@ -15,13 +15,13 @@ def main(scheduler_type="FCFS"):
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
     # 2. Define Memory Resource
-    memory = Memory(env, capacity=300000)
+    memory = Memory(env, capacity=300000, threshold=0.95)
 
     # 3. Define Scheduler
     if scheduler_type == "FCFS":
         scheduler = FCFS(env, memory=memory)
     elif scheduler_type == "RR":
-        scheduler = RR(env, memory=memory, batch=4, time_slice=10, threshold=0.9)
+        scheduler = RR(env, memory=memory, batch=4, time_slice=10)
     elif scheduler_type == "SRPT":
         scheduler = SRPT(env, memory=memory)
     else:

@@ -3,10 +3,11 @@ class Memory:
     Simulated shared resource that can hold up to `capacity` tokens total.
     """
 
-    def __init__(self, env, capacity):
+    def __init__(self, env, capacity, threshold=1.0):
         self.env = env
         self.capacity = capacity
         self.vacancies = capacity
+        self.threshold = threshold
         self.peak_usage = 0
 
     def request(self, amount):
@@ -32,7 +33,13 @@ class Memory:
     def available_tokens(self):
         return self.vacancies
 
+    @property
+    def safe_capacity(self):
+        return self.capacity * self.threshold
+
     def __str__(self):
-        if self.peak_usage > 0:
-            return f"Memory: {self.vacancies}/{self.capacity} tokens available (Peak: {self.peak_usage / self.capacity * 100:.1f}%)"
-        return f"Memory: {self.vacancies}/{self.capacity} tokens available"
+        return (
+            f"Memory: {self.vacancies}/{self.capacity} tokens available, "
+            f"Threshold {self.threshold} "
+            f"(Peak: {self.peak_usage / self.capacity * 100:.1f}%)"
+        )

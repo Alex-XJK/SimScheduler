@@ -8,10 +8,9 @@ class RR(Scheduler):
     But queue new jobs when the memory is (near) full.
     And swap out jobs when the memory is full.
     """
-    def __init__(self, env, memory, batch, time_slice=1, threshold=1.0):
+    def __init__(self, env, memory, batch, time_slice=1):
         super().__init__(env, memory, batch, "RR")
         self.time_slice = time_slice
-        self.threshold = threshold
         self.wait_queue = []
 
     def introduction(self):
@@ -29,7 +28,7 @@ class RR(Scheduler):
 
     def add_job(self, job):
         # Check if we have enough memory to accept this new job
-        if job.init_size <= self.memory.capacity * self.threshold - self._get_expected_memory():
+        if job.init_size <= self.memory.safe_capacity - self._get_expected_memory():
             self.run_queue.append(job)
             return True
         else:
@@ -39,7 +38,7 @@ class RR(Scheduler):
 
     def pick_next_task(self):
         # Unblock waiting jobs if memory is available
-        while self._get_expected_memory() < self.memory.capacity * self.threshold and self.wait_queue:
+        while self._get_expected_memory() < self.memory.safe_capacity and self.wait_queue:
             job = self.wait_queue.pop(0)
             logging.debug(f"Job({job.job_id}) unblocked thanks to memory availability.")
             self.run_queue.append(job)
@@ -69,7 +68,7 @@ class RR(Scheduler):
 
 
         # Swap out the last job in the run queue that occupies memory
-        if self._get_expected_memory() > self.memory.capacity * self.threshold and len(self.run_queue) > 1:
+        if self._get_expected_memory() > self.memory.safe_capacity and len(self.run_queue) > 1:
             idx = self._find_target_job()
             if idx is not None and idx not in chosen_idx:
                 target_job = self.run_queue[idx]
