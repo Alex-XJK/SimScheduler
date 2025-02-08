@@ -34,8 +34,9 @@ class System:
             self.generator.generate_jobs()
 
             # 2. Instruct the scheduler to run the next job
-            current_job = self.scheduler.step()
-            logging.debug(f"Scheduler picked job: {current_job}")
+            working_jobs = self.scheduler.step()
+            for current_job in working_jobs:
+                logging.debug(f"Scheduler Picked: {current_job}")
 
             # 3. Check if we are done:
             if self.generator.is_finished and self.scheduler.num_jobs == 0:

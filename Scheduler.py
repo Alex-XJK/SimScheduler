@@ -15,8 +15,8 @@ class Scheduler:
         self.env = env
         self.memory : Memory = memory
         self.batch : int = batch
-        self.run_queue = []
-        self.finished_jobs = []
+        self.run_queue : list[Job] = []
+        self.finished_jobs : list[Job] = []
 
     def add_job(self, job : Job) -> bool:
         self.run_queue.append(job)
@@ -45,7 +45,7 @@ class Scheduler:
         logging.debug(f"Memory Status >> {self.memory}")
 
         # Template Method pattern
-        next_jobs = self.pick_next_task(self.batch)
+        next_jobs = self.pick_next_task()
 
         if next_jobs is None or len(next_jobs) == 0:
             logging.info("No jobs to run - Scheduler decision.")
@@ -92,7 +92,7 @@ class Scheduler:
         return picked_jobs
 
     @abstractmethod
-    def pick_next_task(self, batch: int) -> list[Job]:
+    def pick_next_task(self) -> list[Job]:
         """
         Concrete subclasses must implement this method.
         Note: When called, the run_queue should never be empty.

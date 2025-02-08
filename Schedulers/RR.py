@@ -8,8 +8,8 @@ class RR(Scheduler):
     But queue new jobs when the memory is (near) full.
     And swap out jobs when the memory is full.
     """
-    def __init__(self, env, memory, time_slice=1, threshold=1.0):
-        super().__init__(env, memory, "RR-wait-swap")
+    def __init__(self, env, memory, batch, time_slice=1, threshold=1.0):
+        super().__init__(env, memory, batch, "RR")
         self.time_slice = time_slice
         self.threshold = threshold
         self.wait_queue = []
@@ -44,12 +44,34 @@ class RR(Scheduler):
             logging.debug(f"Job({job.job_id}) unblocked thanks to memory availability.")
             self.run_queue.append(job)
 
-        next_job = self.run_queue[0]
+        chosen_jobs = []
+        chosen_idx = []
+        current_memory_available = self.memory.available_tokens
+
+        # Choose the first `batch size` jobs in the run queue and make sure they can fit in the memory
+        for i in range(self.batch):
+            if i >= self.num_jobs:
+                break
+
+            if self.run_queue[i].current_size > 0:
+                # Job already been allocated at least initial memory
+                chosen_jobs.append(self.run_queue[i])
+                chosen_idx.append(i)
+                current_memory_available -= 1
+            else:
+                # New Job, need to judge memory capacity
+                if current_memory_available > self.run_queue[i].init_size:
+                    chosen_jobs.append(self.run_queue[i])
+                    chosen_idx.append(i)
+                    current_memory_available -= self.run_queue[i].init_size
+                else:
+                    continue
+
 
         # Swap out the last job in the run queue that occupies memory
         if self._get_expected_memory() > self.memory.capacity * self.threshold and len(self.run_queue) > 1:
             idx = self._find_target_job()
-            if idx is not None:
+            if idx is not None and idx not in chosen_idx:
                 target_job = self.run_queue[idx]
                 logging.debug(f"Swapping out Job({target_job.job_id}) for {target_job.current_size} memory...")
                 self.memory.release(target_job.current_size)
@@ -60,4 +82,5 @@ class RR(Scheduler):
         if self.env.now % self.time_slice == 0:
             j = self.run_queue.pop(0)
             self.run_queue.append(j)
-        return next_job
+
+        return chosen_jobs
