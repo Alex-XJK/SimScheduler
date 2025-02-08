@@ -10,10 +10,11 @@ class Scheduler:
     Base Scheduler class.
     Manages a queue/list of waiting jobs and picks which job runs next.
     """
-    def __init__(self, env, memory, name="Base Scheduler"):
+    def __init__(self, env, memory, batch, name="Base Scheduler"):
         self.name = name
         self.env = env
         self.memory : Memory = memory
+        self.batch : int = batch
         self.run_queue = []
         self.finished_jobs = []
 
@@ -28,7 +29,9 @@ class Scheduler:
         else:
             raise ValueError("Job not in run queue.")
 
-    def step(self) -> Job | None:
+    def step(self) -> list[Job]:
+        picked_jobs = []
+
         # Clean up finished jobs first:
         finished_jobs = [j for j in self.run_queue if j.is_finished]
         for job in finished_jobs:
@@ -37,58 +40,59 @@ class Scheduler:
 
         if not self.run_queue:
             logging.info("No jobs to run - Empty run queue.")
-            return None
+            return picked_jobs
 
         logging.debug(f"Memory Status >> {self.memory}")
 
         # Template Method pattern
-        next_job = self.pick_next_task()
+        next_jobs = self.pick_next_task(self.batch)
 
-        if next_job is None:
+        if next_jobs is None or len(next_jobs) == 0:
             logging.info("No jobs to run - Scheduler decision.")
-            return None
+            return picked_jobs
 
-        # If this is a swapped out job, we need to re-allocate memory for it
-        if next_job.current_size == 0 and next_job.swap_size > 0 and next_job.start_time is not None:
-            if self.memory.request(next_job.swap_size):
-                next_job.current_size = next_job.swap_size
-                next_job.swap_size = 0
-                logging.debug(f"Job({next_job.job_id}) swapped back in...")
+        for next_job in next_jobs:
+            # If this is a swapped out job, we need to re-allocate memory for it
+            if next_job.current_size == 0 and next_job.swap_size > 0 and next_job.start_time is not None:
+                if self.memory.request(next_job.swap_size):
+                    next_job.current_size = next_job.swap_size
+                    next_job.swap_size = 0
+                    logging.debug(f"Job({next_job.job_id}) swapped back in...")
+                else:
+                    logging.warning(f"Job({next_job.job_id}) waiting for {next_job.swap_size} memory... Swap failed.")
+                    continue
+
+            # First time running this job
+            if next_job.current_size == 0 and next_job.start_time is None:
+                if self.memory.request(next_job.init_size):
+                    # Allocate memory for this new job
+                    next_job.current_size = next_job.init_size
+                    next_job.start_time = self.env.now
+                    logging.info(f"Job({next_job.job_id}) starting...")
+                else:
+                    logging.warning(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory... Initiate failed.")
+                    continue
+
+            # Run the job for 1 step
+            if self.memory.request(1):
+                next_job.advance()
             else:
-                logging.warning("No jobs to run - Not enough memory.")
-                logging.debug(f"Job({next_job.job_id}) waiting for {next_job.swap_size} memory...")
-                return None
+                logging.warning(f"Job({next_job.job_id}) waiting for 1 memory... Run failed.")
+                continue
 
-        # First time running this job
-        if next_job.current_size == 0 and next_job.start_time is None:
-            if self.memory.request(next_job.init_size):
-                # Allocate memory for this new job
-                next_job.current_size = next_job.init_size
-                next_job.start_time = self.env.now
-                logging.info(f"Job({next_job.job_id}) starting...")
-            else:
-                logging.warning("No jobs to run - Not enough initial memory.")
-                logging.debug(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory...")
-                return None
+            # Collect the job that was run
+            picked_jobs.append(next_job)
 
-        # Run the job for 1 step
-        if self.memory.request(1):
-            next_job.advance()
-        else:
-            logging.warning("No jobs to run - No additional memory.")
-            logging.debug(f"Job({next_job.job_id}) waiting for 1 memory...")
-            return None
-
-        # If job finished after this increment, mark finish time
-        if next_job.is_finished:
-            next_job.finish_time = self.env.now
-            logging.info(f"Job({next_job.job_id}) finished.")
+            # If job finished after this increment, mark finish time
+            if next_job.is_finished:
+                next_job.finish_time = self.env.now
+                logging.info(f"Job({next_job.job_id}) finished.")
 
         # Return the next(current) job and a list of finished jobs
-        return next_job
+        return picked_jobs
 
     @abstractmethod
-    def pick_next_task(self) -> Job:
+    def pick_next_task(self, batch: int) -> list[Job]:
         """
         Concrete subclasses must implement this method.
         Note: When called, the run_queue should never be empty.
