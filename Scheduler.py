@@ -114,18 +114,9 @@ class Scheduler:
                 total_expected_memory += job.current_size
         return total_expected_memory
 
-
     @property
     def num_jobs(self):
         return len(self.run_queue)
-
-    @abstractmethod
-    def introduction(self) -> str:
-        """
-        Concrete subclasses must implement this method.
-        :return: A string introducing the scheduler.
-        """
-        raise NotImplementedError("Subclasses should implement introduction()")
 
     def __str__(self):
         return f"{self.name}: Batch Size {self.batch}, {self.num_jobs} to run."

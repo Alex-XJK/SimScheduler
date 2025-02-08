@@ -9,28 +9,30 @@ from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
 
 
-def main(scheduler_type="FCFS"):
+def main(sched_class="FCFS", batch_size=4):
     # 1. Create SimPy Environment
     env = simpy.Environment()
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
     # 2. Define Memory Resource
-    memory = Memory(env, capacity=300000, threshold=0.95)
+    memory = Memory(env, capacity=300000, threshold=0.90)
 
     # 3. Define Scheduler
-    if scheduler_type == "FCFS":
-        scheduler = FCFS(env, memory=memory, batch=4)
-    elif scheduler_type == "RR":
-        scheduler = RR(env, memory=memory, batch=4, time_slice=10)
-    elif scheduler_type == "SRPT":
-        scheduler = SRPT(env, memory=memory, batch=4)
+    if sched_class == "FCFS":
+        scheduler = FCFS(env, memory=memory, batch=batch_size)
+    elif sched_class == "RR":
+        scheduler = RR(env, memory=memory, batch=batch_size, time_slice=100)
+    elif sched_class == "SRPT":
+        scheduler = SRPT(env, memory=memory, batch=batch_size)
     else:
         raise ValueError("Unknown scheduler type")
 
     # 4. Define Generator
-    def random_M():
+    def random_init():
+        return random.randint(1024, 2048)
+    def random_output():
         return random.randint(1024, 8192)
-    generator = Generator(env, scheduler=scheduler, speed=8, total=100, init_size=1024, final_fn=random_M)
+    generator = Generator(env, scheduler=scheduler, speed=8, total=100, init_fn=random_init, output_fn=random_output)
 
     # 4. Create the System
     system = System(env, memory=memory, scheduler=scheduler, generator=generator)
@@ -41,11 +43,10 @@ def main(scheduler_type="FCFS"):
 
     # 6. Print results
     print(system)
-    print(scheduler.introduction())
     system.report_stats()
 
 
 if __name__ == "__main__":
-    scheduler_type = "SRPT"  # "FCFS", "RR", "SRPT"
+    scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
 
-    main(scheduler_type)
+    main(scheduler_type, 1)

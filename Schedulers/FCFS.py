@@ -8,9 +8,6 @@ class FCFS(Scheduler):
     def __init__(self, env, memory, batch):
         super().__init__(env, memory, batch,"FCFS")
 
-    def introduction(self):
-        return "First-Come-First-Serve Scheduler"
-
     def pick_next_task(self):
         # Every time, pick the first batch jobs in the queue
         chosen_jobs = []

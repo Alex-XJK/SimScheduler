@@ -1,20 +1,17 @@
-from itertools import count
-
 import simpy
-import random
 import logging
 from Job import Job
 
 class Generator:
     """
     Creates new Jobs.
-    - S: how many jobs to generate per step (i.e. 'per second').
-    - X: total number of jobs to generate (stop after X).
-    - L: average initial size (P).
-    - M_fn: a function or distribution to pick final size M (or a fixed value).
+    - speed: how many jobs to generate per step (i.e. 'per second').
+    - total: total number of jobs to generate (stop after X).
+    - init_fn: function to generate initial size of a job.
+    - output_fn: function to generate expected output size of a job.
     """
 
-    def __init__(self, env, scheduler, speed, total, init_size, final_fn):
+    def __init__(self, env, scheduler, speed, total, init_fn, output_fn):
         self.env = env
         self.scheduler = scheduler
         self.speed = speed
@@ -23,11 +20,14 @@ class Generator:
             self._slow_mode = True
             self.speed = -speed
         self.total_limit = total
-        self.avg_init_size = init_size
-        self.final_size_fn = final_fn
+        self.init_size_fn = init_fn
+        self.output_size_fn = output_fn
         self.job_id = 1
         self.generated_count = 0
         self._slow_mode_acc = self.speed
+
+        self.counter_init : list[int]= []
+        self.counter_output : list[int]= []
 
 
     def generate_jobs(self):
@@ -54,14 +54,16 @@ class Generator:
 
             arrival_time = self.env.now
 
-            P = max(1, int(random.gauss(self.avg_init_size, 5)))
-            M = self.final_size_fn()
+            P = self.init_size_fn()
+            M = self.output_size_fn()
 
             job = Job(job_id=self.job_id, arrival_time=arrival_time, init_size=P, expected_output=M)
             if self.scheduler.add_job(job):
                 self.generated_count += 1
                 tmp_cnt += 1
                 self.job_id += 1
+                self.counter_init.append(P)
+                self.counter_output.append(M)
 
         if tmp_cnt > 0:
             logging.debug(f"Generator Status >> Generated {tmp_cnt} jobs this step.")
@@ -72,6 +74,12 @@ class Generator:
         return self.generated_count >= self.total_limit
 
     def __str__(self):
+        string = "Generator: "
         if self._slow_mode:
-            return f"Generator: 1 job per {self.speed} steps, {self.generated_count}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"
-        return f"Generator: {self.speed} jobs per step, {self.generated_count}/{self.total_limit} jobs generated, {self.avg_init_size} avg size"
+            string += f"1 job per {self.speed} steps, "
+        else:
+            string += f"{self.speed} jobs per step, "
+        string += f"{self.generated_count}/{self.total_limit} jobs generated. "
+        string += f"{min(self.counter_init)} ~ {max(self.counter_init)} initial size, "
+        string += f"{min(self.counter_output)} ~ {max(self.counter_output)} output size"
+        return string

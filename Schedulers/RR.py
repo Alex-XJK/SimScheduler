@@ -9,12 +9,9 @@ class RR(Scheduler):
     And swap out jobs when the memory is full.
     """
     def __init__(self, env, memory, batch, time_slice=1):
-        super().__init__(env, memory, batch, "RR")
+        super().__init__(env, memory, batch, f"RR{time_slice}")
         self.time_slice = time_slice
         self.wait_queue = []
-
-    def introduction(self):
-        return f"Round Robin({self.time_slice}), push new jobs to wait queue when memory is full, swap out jobs when memory is full."
 
     def _find_target_job(self):
         """
