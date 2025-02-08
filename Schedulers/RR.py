@@ -2,19 +2,20 @@ import simpy
 import logging
 from Scheduler import Scheduler
 
-class RRSwapScheduler(Scheduler):
+class RR(Scheduler):
     """
     A round-robin scheduler with a time slice.
-    But stop accepting new jobs when the memory is (near) full.
+    But queue new jobs when the memory is (near) full.
     And swap out jobs when the memory is full.
     """
     def __init__(self, env, memory, time_slice=1, threshold=1.0):
-        super().__init__(env, memory, "RR-rej-swap")
+        super().__init__(env, memory, "RR-wait-swap")
         self.time_slice = time_slice
         self.threshold = threshold
+        self.wait_queue = []
 
     def introduction(self):
-        return "Round Robin, rejecting new jobs when memory is full, swapping out jobs when memory is full."
+        return f"Round Robin({self.time_slice}), push new jobs to wait queue when memory is full, swap out jobs when memory is full."
 
     def _find_target_job(self):
         """
@@ -32,10 +33,17 @@ class RRSwapScheduler(Scheduler):
             self.run_queue.append(job)
             return True
         else:
-            logging.warning("Not enough memory to accept new job.")
-            return False
+            self.wait_queue.append(job)
+            logging.debug(f"Job({job.job_id}) blocked due to memory shortage.")
+            return True
 
     def pick_next_task(self):
+        # Unblock waiting jobs if memory is available
+        while self._get_expected_memory() < self.memory.capacity * self.threshold and self.wait_queue:
+            job = self.wait_queue.pop(0)
+            logging.debug(f"Job({job.job_id}) unblocked thanks to memory availability.")
+            self.run_queue.append(job)
+
         next_job = self.run_queue[0]
 
         # Swap out the last job in the run queue that occupies memory

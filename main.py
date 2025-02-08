@@ -1,14 +1,12 @@
-from sched import scheduler
-
 import simpy
 import random
 import logging
 from System import System
 from Memory import Memory
 from Generator import Generator
-from Schedulers.FCFS import FCFSScheduler
-from Schedulers.RRWaitSwap import RRWaitSwapScheduler
-from Schedulers.SRPT import SRPTScheduler
+from Schedulers.FCFS import FCFS
+from Schedulers.RR import RR
+from Schedulers.SRPT import SRPT
 
 
 def main(scheduler_type="FCFS"):
@@ -21,11 +19,11 @@ def main(scheduler_type="FCFS"):
 
     # 3. Define Scheduler
     if scheduler_type == "FCFS":
-        scheduler = FCFSScheduler(env, memory=memory)
+        scheduler = FCFS(env, memory=memory)
     elif scheduler_type == "RR":
-        scheduler = RRWaitSwapScheduler(env, memory=memory, time_slice=10, threshold=0.9)
+        scheduler = RR(env, memory=memory, time_slice=10, threshold=0.9)
     elif scheduler_type == "SRPT":
-        scheduler = SRPTScheduler(env, memory=memory)
+        scheduler = SRPT(env, memory=memory)
     else:
         raise ValueError("Unknown scheduler type")
 

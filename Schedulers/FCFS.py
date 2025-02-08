@@ -1,7 +1,7 @@
 import simpy
 from Scheduler import Scheduler
 
-class FCFSScheduler(Scheduler):
+class FCFS(Scheduler):
     """
     A First-Come-First-Serve Scheduler.
     """

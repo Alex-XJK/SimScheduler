@@ -3,7 +3,7 @@ from Scheduler import Scheduler
 from Job import Job
 
 
-class SRPTScheduler(Scheduler):
+class SRPT(Scheduler):
     """
     Shortest Remaining Processing Time (SRPT) Scheduler.
     """
