@@ -128,4 +128,4 @@ class Scheduler:
         raise NotImplementedError("Subclasses should implement introduction()")
 
     def __str__(self):
-        return f"{self.name}: {self.num_jobs} to run, {len(self.finished_jobs)} finished."
+        return f"{self.name}: Batch Size {self.batch}, {self.num_jobs} to run."

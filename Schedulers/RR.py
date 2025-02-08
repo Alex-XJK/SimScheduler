@@ -64,11 +64,11 @@ class RR(Scheduler):
                     chosen_idx.append(i)
                     current_memory_available -= self.run_queue[i].init_size
                 else:
+                    # Not enough memory to run this job, skip it
                     continue
 
-
         # Swap out the last job in the run queue that occupies memory
-        if self._get_expected_memory() > self.memory.safe_capacity and len(self.run_queue) > 1:
+        if current_memory_available <= self.batch and len(self.run_queue) > 1:
             idx = self._find_target_job()
             if idx is not None and idx not in chosen_idx:
                 target_job = self.run_queue[idx]

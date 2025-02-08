@@ -19,11 +19,11 @@ def main(scheduler_type="FCFS"):
 
     # 3. Define Scheduler
     if scheduler_type == "FCFS":
-        scheduler = FCFS(env, memory=memory)
+        scheduler = FCFS(env, memory=memory, batch=4)
     elif scheduler_type == "RR":
         scheduler = RR(env, memory=memory, batch=4, time_slice=10)
     elif scheduler_type == "SRPT":
-        scheduler = SRPT(env, memory=memory)
+        scheduler = SRPT(env, memory=memory, batch=4)
     else:
         raise ValueError("Unknown scheduler type")
 
@@ -46,6 +46,6 @@ def main(scheduler_type="FCFS"):
 
 
 if __name__ == "__main__":
-    scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
+    scheduler_type = "SRPT"  # "FCFS", "RR", "SRPT"
 
     main(scheduler_type)
