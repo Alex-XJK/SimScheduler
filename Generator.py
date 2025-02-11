@@ -1,5 +1,6 @@
 import simpy
 import logging
+import random
 from Job import Job
 
 class Generator:
@@ -11,7 +12,7 @@ class Generator:
     - output_fn: function to generate expected output size of a job.
     """
 
-    def __init__(self, env, scheduler, speed, total, init_fn, output_fn):
+    def __init__(self, env, scheduler, speed, total, init_fn, output_fn, dropout=0.0):
         self.env = env
         self.scheduler = scheduler
         self.speed = speed
@@ -22,6 +23,7 @@ class Generator:
         self.total_limit = total
         self.init_size_fn = init_fn
         self.output_size_fn = output_fn
+        self.dropout = dropout
         self.job_id = 1
         self.generated_count = 0
         self._slow_mode_acc = self.speed
@@ -52,6 +54,10 @@ class Generator:
             if self.is_finished:
                 break
 
+            # Randomly dropout some jobs to simulate uncertain server loads
+            if random.random() < self.dropout:
+                continue
+
             arrival_time = self.env.now
 
             P = self.init_size_fn()
@@ -79,6 +85,7 @@ class Generator:
             string += f"1 job per {self.speed} steps, "
         else:
             string += f"{self.speed} jobs per step, "
+        string += f"{self.dropout:.2f} dropout, "
         string += f"{self.generated_count}/{self.total_limit} jobs generated. "
         string += f"{min(self.counter_init)} ~ {max(self.counter_init)} initial size, "
         string += f"{min(self.counter_output)} ~ {max(self.counter_output)} output size"
