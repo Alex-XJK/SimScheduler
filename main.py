@@ -12,7 +12,6 @@ from Schedulers.SRPT import SRPT
 def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     # 1. Create SimPy Environment
     env = simpy.Environment()
-    logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
     # 2. Define Memory Resource
     memory = Memory(env, capacity=300000, threshold=0.90)
@@ -51,6 +50,8 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+
     scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
 
     main(sched_class=scheduler_type, rr_time_slice=1, batch_size=8)

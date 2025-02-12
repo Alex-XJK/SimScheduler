@@ -1,3 +1,5 @@
+import logging
+
 from main import main
 from System import SysReport
 def generate_markdown_table(stats_list : list[SysReport], label_list : list[str]):
@@ -94,4 +96,6 @@ def runner_main(batch_size=8):
 
 
 if __name__ == "__main__":
-    runner_main(batch_size=1)
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+    runner_main(batch_size=2)
