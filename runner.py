@@ -1,7 +1,57 @@
+import matplotlib.pyplot as plt
+import numpy as np
 import logging
 
 from main import main
 from System import SysReport
+
+def plot_results(stats_list : list[SysReport], label_list : list[str], save_path="simulation_results.png"):
+    """
+    Plot the CDFs for Turnaround Time and Slowdown for multiple simulation results,
+    and save the resulting figure to the specified location.
+
+    Parameters:
+        stats_list: list of SysReport
+
+        label_list: list of str
+            Labels corresponding to each result.
+
+        save_path: str
+            The file path (including filename and extension) to save the generated image.
+    """
+    # Create a figure with two subplots: one for Turnaround Time and one for Slowdown
+    fig, axs = plt.subplots(1, 2, figsize=(14, 6))
+
+    # Plot Turnaround Time CDF on the first subplot
+    for stats, label in zip(stats_list, label_list):
+        data = np.array(stats.turnaround_times)
+        sorted_data = np.sort(data)
+        cdf = np.linspace(0, 100, len(sorted_data))
+        axs[0].plot(cdf, sorted_data, label=label)
+    axs[0].set_ylabel("Turnaround Time")
+    axs[0].set_xlabel("Percentile (%)")
+    axs[0].set_title("Turnaround Time")
+    axs[0].legend()
+    axs[0].grid(True)
+
+    # Plot Slowdown CDF on the second subplot
+    for stats, label in zip(stats_list, label_list):
+        data = np.array(stats.slowdowns)
+        sorted_data = np.sort(data)
+        cdf = np.linspace(0, 100, len(sorted_data))
+        axs[1].plot(cdf, sorted_data, label=label)
+    axs[1].set_ylabel("Slowdown")
+    axs[1].set_xlabel("Percentile (%)")
+    axs[1].set_title("Slowdown")
+    axs[1].legend()
+    axs[1].grid(True)
+
+    plt.tight_layout()
+    # Save the figure to the provided file path
+    plt.savefig(save_path)
+    plt.close(fig)
+    print(f"Plot saved to {save_path}")
+
 def generate_markdown_table(stats_list : list[SysReport], label_list : list[str]):
     """
     Generate a markdown table comparing the average turnaround time and slowdown for each simulation result.
@@ -94,8 +144,10 @@ def runner_main(batch_size=8):
 
     generate_markdown_table(stats_list, label_list)
 
+    plot_results(stats_list, label_list, save_path="simulation_results.png")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-    runner_main(batch_size=2)
+    runner_main(batch_size=16)
