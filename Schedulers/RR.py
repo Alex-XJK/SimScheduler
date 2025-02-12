@@ -59,7 +59,7 @@ class RR(Scheduler):
                 if current_memory_available > self.run_queue[i].init_size:
                     chosen_jobs.append(self.run_queue[i])
                     chosen_idx.append(i)
-                    current_memory_available -= self.run_queue[i].init_size
+                    current_memory_available -= (self.run_queue[i].init_size + 1)
                 else:
                     # Not enough memory to run this job, skip it
                     continue
