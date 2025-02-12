@@ -51,14 +51,14 @@ class System:
         self.completed_jobs = self.scheduler.finished_jobs
 
 
-    def report_stats(self):
+    def report_stats(self) -> dict:
         print("---------- Simulation Results ----------")
         print("Total Time Elapsed:", self.env.now)
         print("Total Jobs Started:", self.generator.generated_count, ", Completed ", len(self.completed_jobs), " Remaining ", self.scheduler.num_jobs)
 
         if len(self.completed_jobs) == 0:
             print("No jobs completed!")
-            return
+            return {}
 
         waiting_times = [job.start_time - job.arrival_time for job in self.completed_jobs]
         turnaround_times = [job.finish_time - job.arrival_time for job in self.completed_jobs]
@@ -108,6 +108,16 @@ class System:
                         = [finish - arrival / finish - start]
         """
         print("Average Slowdown:", average_slowdown)
+
+        stats = {
+            "finished_jobs": len(self.completed_jobs),
+            "total_time": self.env.now,
+            "waiting_times": waiting_times,
+            "turnaround_times": turnaround_times,
+            "service_times": service_times,
+            "slowdowns": slowdowns
+        }
+        return stats
 
 
     def __str__(self):
