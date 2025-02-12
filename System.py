@@ -9,6 +9,9 @@ from Scheduler import Scheduler
 
 @dataclass
 class SysReport:
+    """
+    Class for holding and transferring system statistics.
+    """
     # Job statistics
     total_time: int = 0
     finished_jobs: int = 0

@@ -148,6 +148,6 @@ def runner_main(batch_size=8):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s : %(message)s')
+    logging.basicConfig(level=logging.WARN, format='%(levelname)s : %(message)s')
 
     runner_main(batch_size=16)

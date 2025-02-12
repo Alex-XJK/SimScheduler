@@ -54,4 +54,5 @@ if __name__ == "__main__":
 
     scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
 
-    main(sched_class=scheduler_type, rr_time_slice=1, batch_size=8)
+    res = main(sched_class=scheduler_type, rr_time_slice=1, batch_size=8)
+    print(res)
