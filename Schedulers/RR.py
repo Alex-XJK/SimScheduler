@@ -65,7 +65,7 @@ class RR(Scheduler):
                     continue
 
         # Swap out the last job in the run queue that occupies memory
-        if current_memory_available <= self.batch and len(self.run_queue) > 1:
+        while current_memory_available <= self.batch and len(self.run_queue) > 1:
             idx = self._find_target_job()
             if idx is not None and idx not in chosen_idx:
                 target_job = self.run_queue[idx]
@@ -73,6 +73,10 @@ class RR(Scheduler):
                 self.memory.release(target_job.current_size)
                 target_job.swap_size = target_job.current_size
                 target_job.current_size = 0
+                current_memory_available += target_job.swap_size
+                logging.info(f"Memory Status >> {self.memory}")
+            else:
+                break
 
         # Each every time slice, we modify the run queue to dequeue the first job and enqueue it at the end.
         if self.env.now % self.time_slice == 0:
