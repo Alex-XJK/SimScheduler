@@ -1,7 +1,7 @@
 import simpy
 import random
 import logging
-from System import System
+from System import System, SysReport
 from Memory import Memory
 from Generator import Generator
 from Schedulers.FCFS import FCFS
@@ -9,7 +9,7 @@ from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
 
 
-def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> dict:
+def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     # 1. Create SimPy Environment
     env = simpy.Environment()
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')

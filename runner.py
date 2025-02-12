@@ -1,7 +1,8 @@
 from main import main
+from System import SysReport
 def runner_main(batch_size=8):
-    stats_list = []
-    label_list = []
+    stats_list : list[SysReport] = []
+    label_list : list[str] = []
 
     # Simulation 1: SRPT
     print("Running SRPT simulation...")
