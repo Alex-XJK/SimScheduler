@@ -55,11 +55,11 @@ class RR(Scheduler):
                 chosen_idx.append(i)
                 current_memory_available -= 1
             else:
-                # New Job, need to judge memory capacity
-                if current_memory_available > self.run_queue[i].init_size:
+                # New/Swap-out Job, need to judge memory capacity
+                if current_memory_available > max(self.run_queue[i].init_size, self.run_queue[i].swap_size):
                     chosen_jobs.append(self.run_queue[i])
                     chosen_idx.append(i)
-                    current_memory_available -= (self.run_queue[i].init_size + 1)
+                    current_memory_available -= max(self.run_queue[i].init_size, self.run_queue[i].swap_size)
                 else:
                     # Not enough memory to run this job, skip it
                     continue
