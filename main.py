@@ -9,7 +9,7 @@ from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
 
 
-def main(sched_class="FCFS", rr_time_slice=10, batch_size=4):
+def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> dict:
     # 1. Create SimPy Environment
     env = simpy.Environment()
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
@@ -47,7 +47,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4):
 
     # 6. Print results
     print(system)
-    system.report_stats()
+    return system.report_stats()
 
 
 if __name__ == "__main__":
