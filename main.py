@@ -8,6 +8,31 @@ from Schedulers.FCFS import FCFS
 from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
 
+import numpy as np
+
+
+def generate_request_length(s, min_tokens, max_tokens):
+    """
+    Generate a request length between min_tokens and max_tokens using a truncated
+    Zipf distribution with exponent s.
+    
+    Approximately 1% of the probability mass will be for lengths above 8192 tokens.
+    """
+    # Create an array of token counts.
+    ks = np.arange(min_tokens, max_tokens + 1)
+    
+    # Compute the unnormalized weights following Zipf's law.
+    weights = ks ** (-s)
+    
+    # Compute the cumulative distribution function (CDF)
+    cdf = np.cumsum(weights)
+    cdf /= cdf[-1]
+    
+    # Draw a random number and find its corresponding token length via inverse transform.
+    u = np.random.rand()
+    idx = np.searchsorted(cdf, u)
+    return int(ks[idx])
+
 
 def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     # 1. Create SimPy Environment
@@ -30,11 +55,11 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     generator = Generator(
         env,
         scheduler=scheduler,
-        speed=8,
-        total=100,
+        speed=0.007,  # NOTE: this is double the achievable throughput
+        total=1000,
         init_fn=lambda: random.randint(1024, 2048),
-        output_fn=lambda: random.randint(256, 16384),
-        dropout=0.6
+        output_fn=lambda: generate_request_length(s=3.09, min_tokens=1024, max_tokens=16384),
+        dropout=0.05
     )
 
     # 4. Create the System
@@ -45,7 +70,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     env.run()
 
     # 6. Print results
-    print(system)
+    print(str(system))
     return system.report_stats()
 
 
@@ -55,4 +80,5 @@ if __name__ == "__main__":
     scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
 
     res = main(sched_class=scheduler_type, rr_time_slice=1, batch_size=8)
-    print(res)
+    # Only print the string representation of the report
+    print(str(res))

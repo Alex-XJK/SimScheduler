@@ -46,6 +46,7 @@ class Scheduler:
 
         # Template Method pattern
         next_jobs = self.pick_next_task()
+        logging.info(f"Scheduler Picked: {next_jobs}")
 
         if next_jobs is None or len(next_jobs) == 0:
             logging.info("No jobs to run - Scheduler decision.")

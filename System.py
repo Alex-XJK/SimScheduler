@@ -20,15 +20,21 @@ class SysReport:
     waiting_times: list[int] = None
     turnaround_times: list[int] = None
     service_times: list[int] = None
-    slowdowns: list[float] = None
+    normalized_turnaround_times: list[float] = None
     # Computed statistics
     average_waiting_time: float = 0.0
     average_turnaround_time: float = 0.0
     max_turnaround_time: float = 0.0
     p95_turnaround: float = 0.0
+    p99_turnaround: float = 0.0
     average_service_time: float = 0.0
-    average_slowdown: float = 0.0
-    p95_slowdown: float = 0.0
+    p95_service: float = 0.0
+    p99_service: float = 0.0
+    # Add new normalized turnaround time metrics
+    average_normalized_turnaround: float = 0.0
+    max_normalized_turnaround: float = 0.0
+    p95_normalized_turnaround: float = 0.0
+    p99_normalized_turnaround: float = 0.0
 
     def __str__(self):
         return f"""
@@ -41,9 +47,13 @@ class SysReport:
         Average Turnaround Time: {self.average_turnaround_time:.2f}
         Max Turnaround Time (Tail Latency): {self.max_turnaround_time:.2f}
         95th Percentile Turnaround Time: {self.p95_turnaround:.2f}
+        99th Percentile Turnaround Time: {self.p99_turnaround:.2f}
         Average Service Time: {self.average_service_time:.2f}
-        Average Slowdown: {self.average_slowdown:.2f}
-        95th Percentile Slowdown: {self.p95_slowdown:.2f}
+        95th Percentile Service Time: {self.p95_service:.2f}
+        99th Percentile Service Time: {self.p99_service:.2f}
+        Average Slowdown: {self.average_normalized_turnaround:.2f}
+        95th Percentile Slowdown: {self.p95_normalized_turnaround:.2f}
+        99th Percentile Slowdown: {self.p95_normalized_turnaround:.2f}
         -------------------- End of Report --------------------
         """
 
@@ -125,8 +135,26 @@ class System:
 
         turnaround_times_sorted = sorted(turnaround_times)
         p95_index = int(0.95 * len(turnaround_times_sorted))
+        p99_index = int(0.99 * len(turnaround_times_sorted))
         p95_turnaround = turnaround_times_sorted[p95_index]
+        p99_turnaround = turnaround_times_sorted[p99_index]
         sysreport.p95_turnaround = p95_turnaround
+        sysreport.p99_turnaround = p99_turnaround
+
+        """
+        Normalized Turnaround Time = [turnaround_time / sequence_length]
+        """
+        normalized_turnaround_times = [
+            tt / (job.final_size - job.init_size) for tt, job in zip(turnaround_times, self.completed_jobs)
+        ]
+        
+        sysreport.normalized_turnaround_times = normalized_turnaround_times
+        sysreport.average_normalized_turnaround = sum(normalized_turnaround_times) / len(normalized_turnaround_times)
+        sysreport.max_normalized_turnaround = max(normalized_turnaround_times)
+        
+        normalized_turnaround_sorted = sorted(normalized_turnaround_times)
+        sysreport.p95_normalized_turnaround = normalized_turnaround_sorted[p95_index]
+        sysreport.p99_normalized_turnaround = normalized_turnaround_sorted[p99_index]
 
         """
         Service Time    = [finish - start]
@@ -137,27 +165,15 @@ class System:
         average_service_time = sum(service_times) / len(service_times)
         sysreport.average_service_time = average_service_time
 
+        service_times_sorted = sorted(service_times)
+        sysreport.p95_service = service_times_sorted[p95_index]
+        sysreport.p99_service = service_times_sorted[p99_index]
+
         """
         Throughput      = [jobs completed / total time]
         """
         throughput = len(self.completed_jobs) / int(self.env.now)
         sysreport.throughput = throughput
-
-        """
-        Slowdown        = [turnaround / service]
-                        = [finish - arrival / finish - start]
-        """
-        slowdowns = [
-            (tt / st) if st > 0 else 0
-            for tt, st in zip(turnaround_times, service_times)
-        ]
-        sysreport.slowdowns = slowdowns
-
-        average_slowdown = sum(slowdowns) / len(slowdowns)
-        sysreport.average_slowdown = average_slowdown
-
-        p95_slowdown = sorted(slowdowns)[p95_index]
-        sysreport.p95_slowdown = p95_slowdown
 
         # Return the report
         return sysreport

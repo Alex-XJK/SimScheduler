@@ -32,7 +32,7 @@ class Job:
     def advance(self):
         self.current_size += 1
 
-    def __str__(self):
+    def __repr__(self):
         if self.is_finished:
             return f"Job({self.job_id}): Finished at {self.finish_time}"
         else:
