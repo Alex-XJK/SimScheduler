@@ -11,27 +11,28 @@ from Schedulers.SRPT import SRPT
 import numpy as np
 
 
-def generate_request_length(s, min_tokens, max_tokens):
+def zipf(s=1.98, min_tokens=256, max_tokens=16384):
     """
     Generate a request length between min_tokens and max_tokens using a truncated
     Zipf distribution with exponent s.
     
-    Approximately 1% of the probability mass will be for lengths above 8192 tokens.
+    Approximately 95% of the probability mass will produce lengths below 4096 tokens.
     """
-    # Create an array of token counts.
+    # Create an array of possible token counts.
     ks = np.arange(min_tokens, max_tokens + 1)
     
-    # Compute the unnormalized weights following Zipf's law.
+    # Compute the unnormalized weights following Zipf's law: P(k) ∝ k^{-s}
     weights = ks ** (-s)
     
     # Compute the cumulative distribution function (CDF)
     cdf = np.cumsum(weights)
-    cdf /= cdf[-1]
+    cdf /= cdf[-1]  # normalize to 1
     
-    # Draw a random number and find its corresponding token length via inverse transform.
+    # Draw a random number and use inverse transform sampling.
     u = np.random.rand()
     idx = np.searchsorted(cdf, u)
     return int(ks[idx])
+
 
 
 def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
@@ -55,10 +56,10 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     generator = Generator(
         env,
         scheduler=scheduler,
-        speed=0.007,  # NOTE: this is double the achievable throughput
+        speed=0.012,  # NOTE: this is double the achievable throughput
         total=1000,
         init_fn=lambda: random.randint(1024, 2048),
-        output_fn=lambda: generate_request_length(s=3.09, min_tokens=1024, max_tokens=16384),
+        output_fn=lambda: zipf(),
         dropout=0.05
     )
 
