@@ -19,6 +19,12 @@ class Job:
         self.start_time = None
         self.finish_time = None
 
+        # Only used for SRPT scheduler
+        self.last_scheduled_time = None
+        self.starvation_count = 0
+        self.quantum = 0
+        self.is_priority = False
+
     @property
     def is_finished(self):
         return self.current_size >= self.final_size or self.finish_time is not None

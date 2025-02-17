@@ -118,10 +118,64 @@ def runner_main(batch_size=8):
     label_list : list[str] = []
 
     # Simulation 1: SRPT
-    print("Running SRPT simulation...")
-    stats_srpt = main(sched_class="SRPT", batch_size=batch_size)
+    print("Running SRPT (no starvation prevention) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=None, starvation_threshold=None)
     stats_list.append(stats_srpt)
     label_list.append("SRPT")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 1, ST 50) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=1, starvation_threshold=50)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-1-50")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 5, ST 50) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=5, starvation_threshold=50)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-5-50")
+    print(stats_srpt)
+    
+    print("Running SRPT (PQ 25, ST 50) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=10, starvation_threshold=50)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-25-50")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 1, ST 100) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=1, starvation_threshold=100)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-1-100")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 10, ST 100) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=10, starvation_threshold=100)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-10-100")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 50, ST 100) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=50, starvation_threshold=100)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-50-100")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 1, ST 1000) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=1, starvation_threshold=1000)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-1-1000")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 100, ST 1000) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=100, starvation_threshold=1000)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-100-1000")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 500, ST 1000) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=500, starvation_threshold=1000)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-500-1000")
     print(stats_srpt)
 
     # Simulation 2: RR-1

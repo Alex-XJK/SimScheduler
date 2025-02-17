@@ -35,7 +35,7 @@ def zipf(s=1.98, min_tokens=256, max_tokens=16384):
 
 
 
-def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
+def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysReport:
     # 1. Create SimPy Environment
     env = simpy.Environment()
 
@@ -48,7 +48,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     elif sched_class == "RR":
         scheduler = RR(env, memory=memory, batch=batch_size, time_slice=rr_time_slice)
     elif sched_class == "SRPT":
-        scheduler = SRPT(env, memory=memory, batch=batch_size)
+        scheduler = SRPT(env, memory=memory, batch=batch_size, **kwargs)
     else:
         raise ValueError("Unknown scheduler type")
 
@@ -56,7 +56,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     generator = Generator(
         env,
         scheduler=scheduler,
-        speed=0.012,  # NOTE: this is double the achievable throughput
+        speed=0.02,  # NOTE: this is double the achievable throughput
         total=1000,
         init_fn=lambda: random.randint(1024, 2048),
         output_fn=lambda: zipf(),

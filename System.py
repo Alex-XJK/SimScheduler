@@ -53,7 +53,7 @@ class SysReport:
         99th Percentile Service Time: {self.p99_service:.2f}
         Average Slowdown: {self.average_normalized_turnaround:.2f}
         95th Percentile Slowdown: {self.p95_normalized_turnaround:.2f}
-        99th Percentile Slowdown: {self.p95_normalized_turnaround:.2f}
+        99th Percentile Slowdown: {self.p99_normalized_turnaround:.2f}
         -------------------- End of Report --------------------
         """
 
