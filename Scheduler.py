@@ -46,6 +46,7 @@ class Scheduler:
 
         # Template Method pattern
         next_jobs = self.pick_next_task()
+        logging.info(f"Scheduler Picked: {next_jobs}")
 
         if next_jobs is None or len(next_jobs) == 0:
             logging.info("No jobs to run - Scheduler decision.")
@@ -75,7 +76,7 @@ class Scheduler:
 
             # Run the job for 1 step
             if self.memory.request(1):
-                next_job.advance()
+                next_job.advance(self.env.now)
             else:
                 logging.warning(f"Job({next_job.job_id}) waiting for 1 memory... Run failed.")
                 continue

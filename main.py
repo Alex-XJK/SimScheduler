@@ -8,8 +8,34 @@ from Schedulers.FCFS import FCFS
 from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
 
+import numpy as np
 
-def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
+
+def zipf(s, min_tokens, max_tokens):
+    """
+    Generate a request length between min_tokens and max_tokens using a truncated
+    Zipf distribution with exponent s.
+    
+    Approximately 95% of the probability mass will produce lengths below 4096 tokens.
+    """
+    # Create an array of possible token counts.
+    ks = np.arange(min_tokens, max_tokens + 1)
+    
+    # Compute the unnormalized weights following Zipf's law: P(k) ∝ k^{-s}
+    weights = ks ** (-s)
+    
+    # Compute the cumulative distribution function (CDF)
+    cdf = np.cumsum(weights)
+    cdf /= cdf[-1]  # normalize to 1
+    
+    # Draw a random number and use inverse transform sampling.
+    u = np.random.rand()
+    idx = np.searchsorted(cdf, u)
+    return int(ks[idx])
+
+
+
+def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysReport:
     # 1. Create SimPy Environment
     env = simpy.Environment()
 
@@ -22,7 +48,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     elif sched_class == "RR":
         scheduler = RR(env, memory=memory, batch=batch_size, time_slice=rr_time_slice)
     elif sched_class == "SRPT":
-        scheduler = SRPT(env, memory=memory, batch=batch_size)
+        scheduler = SRPT(env, memory=memory, batch=batch_size, **kwargs)
     else:
         raise ValueError("Unknown scheduler type")
 
@@ -30,11 +56,11 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     generator = Generator(
         env,
         scheduler=scheduler,
-        speed=8,
-        total=100,
+        speed=0.02,  # NOTE: this is double the achievable throughput
+        total=1000,
         init_fn=lambda: random.randint(1024, 2048),
-        output_fn=lambda: random.randint(256, 16384),
-        dropout=0.6
+        output_fn=lambda: zipf(s=1.98, min_tokens=256, max_tokens=16384),
+        dropout=0.05
     )
 
     # 4. Create the System
@@ -45,7 +71,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4) -> SysReport:
     env.run()
 
     # 6. Print results
-    print(system)
+    print(str(system))
     return system.report_stats()
 
 
@@ -55,4 +81,5 @@ if __name__ == "__main__":
     scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
 
     res = main(sched_class=scheduler_type, rr_time_slice=1, batch_size=8)
-    print(res)
+    # Only print the string representation of the report
+    print(str(res))

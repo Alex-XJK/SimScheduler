@@ -12,10 +12,7 @@ class FCFS(Scheduler):
         # Every time, pick the first batch jobs in the queue
         chosen_jobs = []
         memory_available = self.memory.available_tokens
-        for i in range(self.batch):
-            if i >= self.num_jobs:
-                break
-
+        for i in range(min(self.num_jobs, self.batch)):
             if self.run_queue[i].current_size > 0:
                 chosen_jobs.append(self.run_queue[i])
                 memory_available -= 1

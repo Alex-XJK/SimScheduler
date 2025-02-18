@@ -19,6 +19,12 @@ class Job:
         self.start_time = None
         self.finish_time = None
 
+        # Only used for SRPT scheduler
+        self.last_scheduled_time = None
+        self.starvation_count = 0
+        self.quantum = 0
+        self.is_priority = False
+
     @property
     def is_finished(self):
         return self.current_size >= self.final_size or self.finish_time is not None
@@ -29,10 +35,12 @@ class Job:
             return self.finish_time - self.arrival_time
         return None
 
-    def advance(self):
+    def advance(self, curr_time):
+        if self.start_time is None:
+            self.start_time = curr_time
         self.current_size += 1
 
-    def __str__(self):
+    def __repr__(self):
         if self.is_finished:
             return f"Job({self.job_id}): Finished at {self.finish_time}"
         else:

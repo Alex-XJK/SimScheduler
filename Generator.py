@@ -1,60 +1,58 @@
 import simpy
-import logging
 import random
+import logging
+
 from Job import Job
 
 class Generator:
     """
     Creates new Jobs.
-    - speed: how many jobs to generate per step (i.e. 'per second').
+    - speed: jobs to generate per step (can be fractional).
+      E.g., speed=0.5 means on average 1 job every 2 steps.
     - total: total number of jobs to generate (stop after X).
     - init_fn: function to generate initial size of a job.
     - output_fn: function to generate expected output size of a job.
+    - dropout: probability to drop a job (simulate uncertain server load).
     """
 
     def __init__(self, env, scheduler, speed, total, init_fn, output_fn, dropout=0.0):
         self.env = env
         self.scheduler = scheduler
-        self.speed = speed
-        self._slow_mode = False
-        if speed < 1:
-            self._slow_mode = True
-            self.speed = -speed
+        self.speed = speed  # This value may be fractional.
         self.total_limit = total
         self.init_size_fn = init_fn
         self.output_size_fn = output_fn
         self.dropout = dropout
+
         self.job_id = 1
         self.generated_count = 0
-        self._slow_mode_acc = self.speed
 
-        self.counter_init : list[int]= []
-        self.counter_output : list[int]= []
+        # Accumulator for fractional job generation.
+        self._acc = 0.0
 
+        self.counter_init: list[int] = []
+        self.counter_output: list[int] = []
 
     def generate_jobs(self):
         """
         Called once per step by the System.
-        Generate up to S new jobs in one second.
+        The function accumulates fractional jobs and generates one full job
+        every time the accumulator reaches or exceeds 1.
         """
         tmp_cnt = 0
 
-        num_jobs_this_step = self.speed  # Generate `Speed` jobs per step
+        # Accumulate the fractional jobs
+        self._acc += self.speed
 
-        # Slow Mode: Generate 1 job per `speed` steps
-        if self._slow_mode:
-            if self._slow_mode_acc < self.speed:
-                self._slow_mode_acc += 1
-                return 0
-            else:
-                self._slow_mode_acc = 0
-            num_jobs_this_step = 1  # Generate 1 job per step
+        # Determine how many whole jobs to generate this step
+        num_jobs_this_step = int(self._acc)
+        self._acc -= num_jobs_this_step
 
         for _ in range(num_jobs_this_step):
             if self.is_finished:
                 break
 
-            # Randomly dropout some jobs to simulate uncertain server loads
+            # Randomly drop jobs to simulate uncertain server loads
             if random.random() < self.dropout:
                 continue
 
@@ -63,6 +61,7 @@ class Generator:
             P = self.init_size_fn()
             M = self.output_size_fn()
 
+            # Assuming Job is defined elsewhere
             job = Job(job_id=self.job_id, arrival_time=arrival_time, init_size=P, expected_output=M)
             if self.scheduler.add_job(job):
                 self.generated_count += 1
@@ -81,12 +80,15 @@ class Generator:
 
     def __str__(self):
         string = "Generator: "
-        if self._slow_mode:
-            string += f"1 job per {self.speed} steps, "
+        if self.speed < 1:
+            period = round(1 / self.speed, 2)
+            string += f"~1 job per {period} steps, "
         else:
             string += f"{self.speed} jobs per step, "
         string += f"{self.dropout:.2f} dropout, "
         string += f"{self.generated_count}/{self.total_limit} jobs generated. "
-        string += f"{min(self.counter_init)} ~ {max(self.counter_init)} initial size, "
-        string += f"{min(self.counter_output)} ~ {max(self.counter_output)} output size"
+        if self.counter_init and self.counter_output:
+            string += f"{min(self.counter_init)} ~ {max(self.counter_init)} initial size, "
+            string += f"{min(self.counter_output)} ~ {max(self.counter_output)} output size"
         return string
+

@@ -24,10 +24,13 @@ def plot_results(stats_list : list[SysReport], label_list : list[str], save_path
 
     # Plot Turnaround Time CDF on the first subplot
     for stats, label in zip(stats_list, label_list):
-        data = np.array(stats.turnaround_times)
-        sorted_data = np.sort(data)
-        cdf = np.linspace(0, 100, len(sorted_data))
-        axs[0].plot(cdf, sorted_data, label=label)
+        # Convert turnaround_times to numpy array and ensure it's not None
+        if hasattr(stats, 'turnaround_times') and stats.turnaround_times:
+            data = np.asarray(stats.turnaround_times, dtype=float)
+            if data.size > 0:  # Check if array is not empty
+                sorted_data = np.sort(data)
+                cdf = np.linspace(0, 100, len(sorted_data))
+                axs[0].plot(cdf, sorted_data, label=label)
     axs[0].set_ylabel("Turnaround Time")
     axs[0].set_xlabel("Percentile (%)")
     axs[0].set_title("Turnaround Time")
@@ -36,10 +39,13 @@ def plot_results(stats_list : list[SysReport], label_list : list[str], save_path
 
     # Plot Slowdown CDF on the second subplot
     for stats, label in zip(stats_list, label_list):
-        data = np.array(stats.slowdowns)
-        sorted_data = np.sort(data)
-        cdf = np.linspace(0, 100, len(sorted_data))
-        axs[1].plot(cdf, sorted_data, label=label)
+        # Convert slowdowns to numpy array and ensure it's not None
+        if hasattr(stats, 'normalized_turnaround_times') and stats.normalized_turnaround_times:
+            data = np.asarray(stats.normalized_turnaround_times, dtype=float)
+            if data.size > 0:  # Check if array is not empty
+                sorted_data = np.sort(data)
+                cdf = np.linspace(0, 100, len(sorted_data))
+                axs[1].plot(cdf, sorted_data, label=label)
     axs[1].set_ylabel("Slowdown")
     axs[1].set_xlabel("Percentile (%)")
     axs[1].set_title("Slowdown")
@@ -70,6 +76,10 @@ def generate_markdown_table(stats_list : list[SysReport], label_list : list[str]
     total_times = [stats.total_time for stats in stats_list]
     print("| Total Time | " + " | ".join([f"{time}" for time in total_times]) + " |")
 
+    # Table Row: Throughput
+    throughputs = [stats.throughput for stats in stats_list]
+    print("| Throughput | " + " | ".join([f"{tp:.10f}" for tp in throughputs]) + " |")
+
     # Table Row: Average Waiting Time
     avg_waiting_times = [stats.average_waiting_time for stats in stats_list]
     print("| Average Waiting Time | " + " | ".join([f"{wt:.2f}" for wt in avg_waiting_times]) + " |")
@@ -78,29 +88,29 @@ def generate_markdown_table(stats_list : list[SysReport], label_list : list[str]
     avg_turnaround_times = [stats.average_turnaround_time for stats in stats_list]
     print("| Average Turnaround Time | " + " | ".join([f"{tt:.2f}" for tt in avg_turnaround_times]) + " |")
 
-    # Table Row: Max Turnaround Time
-    max_turnaround_times = [stats.max_turnaround_time for stats in stats_list]
-    print("| Max Turnaround Time | " + " | ".join([f"{mtt:.2f}" for mtt in max_turnaround_times]) + " |")
-
     # Table Row: 95th Percentile Turnaround Time
     p95_turnaround_times = [stats.p95_turnaround for stats in stats_list]
     print("| 95th Percentile Turnaround Time | " + " | ".join([f"{ptt:.2f}" for ptt in p95_turnaround_times]) + " |")
 
-    # Table Row: Average Service Time
-    avg_service_times = [stats.average_service_time for stats in stats_list]
-    print("| Average Service Time | " + " | ".join([f"{st:.2f}" for st in avg_service_times]) + " |")
+    # Table Row: 99th Percentile Turnaround Time
+    p99_turnaround_times = [stats.p99_turnaround for stats in stats_list]
+    print("| 99th Percentile Turnaround Time | " + " | ".join([f"{ptt:.2f}" for ptt in p99_turnaround_times]) + " |")
 
-    # Table Row: Throughput
-    throughputs = [stats.throughput for stats in stats_list]
-    print("| Throughput | " + " | ".join([f"{tp:.10f}" for tp in throughputs]) + " |")
+    # Table Row: Max Turnaround Time
+    max_turnaround_times = [stats.max_turnaround_time for stats in stats_list]
+    print("| Max Turnaround Time | " + " | ".join([f"{mtt:.2f}" for mtt in max_turnaround_times]) + " |")
 
     # Table Row: Average Slowdown
-    avg_slowdowns = [stats.average_slowdown for stats in stats_list]
+    avg_slowdowns = [stats.average_normalized_turnaround for stats in stats_list]
     print("| Average Slowdown | " + " | ".join([f"{sd:.6f}" for sd in avg_slowdowns]) + " |")
 
     # Table Row: 95th Percentile Slowdown
-    p95_slowdowns = [stats.p95_slowdown for stats in stats_list]
+    p95_slowdowns = [stats.p95_normalized_turnaround for stats in stats_list]
     print("| 95th Percentile Slowdown | " + " | ".join([f"{sd:.6f}" for sd in p95_slowdowns]) + " |")
+
+    # Table Row: 99th Percentile Slowdown
+    p99_slowdowns = [stats.p99_normalized_turnaround for stats in stats_list]
+    print("| 99th Percentile Slowdown | " + " | ".join([f"{sd:.6f}" for sd in p99_slowdowns]) + " |")
 
 
 def runner_main(batch_size=8):
@@ -108,10 +118,64 @@ def runner_main(batch_size=8):
     label_list : list[str] = []
 
     # Simulation 1: SRPT
-    print("Running SRPT simulation...")
-    stats_srpt = main(sched_class="SRPT", batch_size=batch_size)
+    print("Running SRPT (no starvation prevention) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=None, starvation_threshold=None)
     stats_list.append(stats_srpt)
     label_list.append("SRPT")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 1, ST 50) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=1, starvation_threshold=50)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-1-50")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 5, ST 50) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=5, starvation_threshold=50)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-5-50")
+    print(stats_srpt)
+    
+    print("Running SRPT (PQ 25, ST 50) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=10, starvation_threshold=50)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-25-50")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 1, ST 100) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=1, starvation_threshold=100)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-1-100")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 10, ST 100) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=10, starvation_threshold=100)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-10-100")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 50, ST 100) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=50, starvation_threshold=100)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-50-100")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 1, ST 1000) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=1, starvation_threshold=1000)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-1-1000")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 100, ST 1000) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=100, starvation_threshold=1000)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-100-1000")
+    print(stats_srpt)
+
+    print("Running SRPT (PQ 500, ST 1000) simulation...")
+    stats_srpt = main(sched_class="SRPT", batch_size=batch_size, priority_quantum=500, starvation_threshold=1000)
+    stats_list.append(stats_srpt)
+    label_list.append("SRPT-500-1000")
     print(stats_srpt)
 
     # Simulation 2: RR-1
