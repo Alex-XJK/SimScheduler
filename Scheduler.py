@@ -76,7 +76,7 @@ class Scheduler:
 
             # Run the job for 1 step
             if self.memory.request(1):
-                next_job.advance()
+                next_job.advance(self.env.now)
             else:
                 logging.warning(f"Job({next_job.job_id}) waiting for 1 memory... Run failed.")
                 continue

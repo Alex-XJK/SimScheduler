@@ -11,7 +11,7 @@ from Schedulers.SRPT import SRPT
 import numpy as np
 
 
-def zipf(s=1.98, min_tokens=256, max_tokens=16384):
+def zipf(s, min_tokens, max_tokens):
     """
     Generate a request length between min_tokens and max_tokens using a truncated
     Zipf distribution with exponent s.
@@ -59,7 +59,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysRep
         speed=0.02,  # NOTE: this is double the achievable throughput
         total=1000,
         init_fn=lambda: random.randint(1024, 2048),
-        output_fn=lambda: zipf(),
+        output_fn=lambda: zipf(s=1.98, min_tokens=256, max_tokens=16384),
         dropout=0.05
     )
 

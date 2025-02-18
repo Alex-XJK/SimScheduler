@@ -35,7 +35,9 @@ class Job:
             return self.finish_time - self.arrival_time
         return None
 
-    def advance(self):
+    def advance(self, curr_time):
+        if self.start_time is None:
+            self.start_time = curr_time
         self.current_size += 1
 
     def __repr__(self):
