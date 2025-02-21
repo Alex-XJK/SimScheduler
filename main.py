@@ -4,6 +4,7 @@ import logging
 from System import System, SysReport
 from Memory import Memory
 from Generators.Random import RandomGenerator
+from Generators.Loader import CSVSource, CSVGenerator
 from Schedulers.FCFS import FCFS
 from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
@@ -53,14 +54,25 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysRep
         raise ValueError("Unknown scheduler type")
 
     # 4. Define Generator
-    generator = RandomGenerator(
+    # generator = RandomGenerator(
+    #     env,
+    #     scheduler=scheduler,
+    #     speed=0.02,  # NOTE: this is double the achievable throughput
+    #     total=1000,
+    #     dropout=0.05,
+    #     init_fn=lambda: random.randint(1024, 2048),
+    #     output_fn=lambda: zipf(s=1.98, min_tokens=256, max_tokens=16384)
+    # )
+    generator = CSVGenerator(
         env,
         scheduler=scheduler,
         speed=0.02,  # NOTE: this is double the achievable throughput
         total=1000,
         dropout=0.05,
-        init_fn=lambda: random.randint(1024, 2048),
-        output_fn=lambda: zipf(s=1.98, min_tokens=256, max_tokens=16384)
+        csv_sources=[
+            CSVSource(nickname="AzureChat", file_path="Generators/data/AzureLLMInferenceTrace_conv.csv", fraction=0.9),
+            CSVSource(nickname="AzureCode", file_path="Generators/data/AzureLLMInferenceTrace_code.csv", fraction=0.1),
+        ]
     )
 
     # 4. Create the System

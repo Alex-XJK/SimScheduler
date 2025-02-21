@@ -120,6 +120,7 @@ class CSVGenerator(Generator):
                   init_size=init_size,
                   expected_output=expected_output)
         if self.scheduler.add_job(job):
+            logging.debug(f"Added job {self.job_id} [{init_size}-{expected_output}] from source '{selected_source.nickname}'")
             return True
         return False
 
