@@ -3,7 +3,7 @@ import random
 import logging
 from System import System, SysReport
 from Memory import Memory
-from Generator import Generator
+from Generators.Random import RandomGenerator
 from Schedulers.FCFS import FCFS
 from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
@@ -53,14 +53,14 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysRep
         raise ValueError("Unknown scheduler type")
 
     # 4. Define Generator
-    generator = Generator(
+    generator = RandomGenerator(
         env,
         scheduler=scheduler,
         speed=0.02,  # NOTE: this is double the achievable throughput
         total=1000,
+        dropout=0.05,
         init_fn=lambda: random.randint(1024, 2048),
-        output_fn=lambda: zipf(s=1.98, min_tokens=256, max_tokens=16384),
-        dropout=0.05
+        output_fn=lambda: zipf(s=1.98, min_tokens=256, max_tokens=16384)
     )
 
     # 4. Create the System
@@ -71,7 +71,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysRep
     env.run()
 
     # 6. Print results
-    print(str(system))
+    print(system)
     return system.report_stats()
 
 
@@ -81,5 +81,5 @@ if __name__ == "__main__":
     scheduler_type = "RR"  # "FCFS", "RR", "SRPT"
 
     res = main(sched_class=scheduler_type, rr_time_slice=1, batch_size=8)
-    # Only print the string representation of the report
-    print(str(res))
+    # Only print the string representation of the report --> No need, print will invoke my implemented __str__ method
+    print(res)

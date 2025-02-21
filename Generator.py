@@ -1,8 +1,8 @@
 import simpy
 import random
 import logging
+from abc import abstractmethod
 
-from Job import Job
 
 class Generator:
     """
@@ -10,18 +10,16 @@ class Generator:
     - speed: jobs to generate per step (can be fractional).
       E.g., speed=0.5 means on average 1 job every 2 steps.
     - total: total number of jobs to generate (stop after X).
-    - init_fn: function to generate initial size of a job.
-    - output_fn: function to generate expected output size of a job.
     - dropout: probability to drop a job (simulate uncertain server load).
+    - name: name of the generator (for debugging).
     """
 
-    def __init__(self, env, scheduler, speed, total, init_fn, output_fn, dropout=0.0):
+    def __init__(self, env, scheduler, speed, total, dropout=0.0, name="Base Generator"):
         self.env = env
+        self.name = name
         self.scheduler = scheduler
         self.speed = speed  # This value may be fractional.
         self.total_limit = total
-        self.init_size_fn = init_fn
-        self.output_size_fn = output_fn
         self.dropout = dropout
 
         self.job_id = 1
@@ -30,10 +28,8 @@ class Generator:
         # Accumulator for fractional job generation.
         self._acc = 0.0
 
-        self.counter_init: list[int] = []
-        self.counter_output: list[int] = []
 
-    def generate_jobs(self):
+    def generate_jobs(self) -> int:
         """
         Called once per step by the System.
         The function accumulates fractional jobs and generates one full job
@@ -56,39 +52,38 @@ class Generator:
             if random.random() < self.dropout:
                 continue
 
-            arrival_time = self.env.now
+            # Let the concrete generator try to add a job
+            is_add_success = self.try_add_one_job()
 
-            P = self.init_size_fn()
-            M = self.output_size_fn()
-
-            # Assuming Job is defined elsewhere
-            job = Job(job_id=self.job_id, arrival_time=arrival_time, init_size=P, expected_output=M)
-            if self.scheduler.add_job(job):
+            if is_add_success:
                 self.generated_count += 1
                 tmp_cnt += 1
                 self.job_id += 1
-                self.counter_init.append(P)
-                self.counter_output.append(M)
 
         if tmp_cnt > 0:
             logging.debug(f"Generator Status >> Generated {tmp_cnt} jobs this step.")
         return tmp_cnt
+
+    @abstractmethod
+    def try_add_one_job(self) -> bool:
+        """
+        Try to create and add one job to the scheduler.
+        Return True if successful, False otherwise.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
 
     @property
     def is_finished(self):
         return self.generated_count >= self.total_limit
 
     def __str__(self):
-        string = "Generator: "
+        string = f"{self.name}: "
         if self.speed < 1:
             period = round(1 / self.speed, 2)
             string += f"~1 job per {period} steps, "
         else:
             string += f"{self.speed} jobs per step, "
         string += f"{self.dropout:.2f} dropout, "
-        string += f"{self.generated_count}/{self.total_limit} jobs generated. "
-        if self.counter_init and self.counter_output:
-            string += f"{min(self.counter_init)} ~ {max(self.counter_init)} initial size, "
-            string += f"{min(self.counter_output)} ~ {max(self.counter_output)} output size"
+        string += f"{self.generated_count}/{self.total_limit} jobs generated."
         return string
 
