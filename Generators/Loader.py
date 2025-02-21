@@ -44,8 +44,9 @@ class CSVGenerator(Generator):
     """
     Generator that creates new Jobs based on multiple CSV files.
 
-    The total number of jobs to generate is provided by the user. For each CSV source,
-    the target number of jobs is computed from its fraction (with the last source
+    The total number of jobs to generate is provided by the user.
+    The loader will generate jobs from multiple CSV sources sequentially until its fraction is exhausted.
+    For each CSV source, the target number of jobs is computed from its fraction (with the last source
     receiving the remainder).
     """
 
@@ -81,6 +82,11 @@ class CSVGenerator(Generator):
                     f"(target {src.target_count} but available {len(src.rows)})"
                 )
 
+        # Report data source combinations
+        logging.debug(f"Loaded {len(self.csv_sources)} CSV sources:")
+        for i, src in enumerate(self.csv_sources):
+            logging.debug(f"[{i+1}] {src.nickname}: {src.target_count} jobs from {src.file_path} (total {len(src.rows)} rows)")
+
 
     def __current_source(self) -> CSVSource|None:
         """
@@ -91,7 +97,6 @@ class CSVGenerator(Generator):
             if source.current_index < source.target_count:
                 return source
         return None
-
 
 
     def try_add_one_job(self) -> bool:

@@ -70,19 +70,19 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysRep
         total=1000,
         dropout=0.05,
         csv_sources=[
-            CSVSource(nickname="AzureChat", file_path="Generators/data/AzureLLMInferenceTrace_conv.csv", fraction=0.9),
-            CSVSource(nickname="AzureCode", file_path="Generators/data/AzureLLMInferenceTrace_code.csv", fraction=0.1),
+            CSVSource(nickname="AzChat23", file_path="Generators/data/AzureLLMInferenceTrace_conv.csv", fraction=0.5),
+            CSVSource(nickname="AzCode23", file_path="Generators/data/AzureLLMInferenceTrace_code.csv", fraction=0.5),
         ]
     )
 
-    # 4. Create the System
+    # 5. Create the System
     system = System(env, memory=memory, scheduler=scheduler, generator=generator)
 
-    # 5. Run the simulation
+    # 6. Run the simulation
     env.process(system.run_simulation(max_time=1000000))
     env.run()
 
-    # 6. Print results
+    # 7. Print results
     print(system)
     return system.report_stats()
 
