@@ -1,3 +1,5 @@
+from enum import Enum
+
 class Job:
     """
     Represents a single job/request.
@@ -8,8 +10,18 @@ class Job:
     - finish_time: when it completed generating M tokens.
     """
 
+    class State(Enum):
+        """
+        The current state of the job.
+        """
+        INITIAL     = 0
+        PREFILL     = 1
+        DECODE      = 2
+        FINISHED    = 3
+
     def __init__(self, job_id, arrival_time, init_size, expected_output):
         self.job_id = job_id
+        self.state = Job.State.INITIAL
         self.init_size = init_size
         self.final_size = init_size + expected_output
         self.current_size = 0
