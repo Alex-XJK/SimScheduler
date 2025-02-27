@@ -63,7 +63,7 @@ class Generator:
                 self.job_id += 1
 
         if tmp_cnt > 0:
-            logging.debug(f"Generator Status >> Generated {tmp_cnt} jobs this step.")
+            logging.debug(f"Generator >> Generated {tmp_cnt} jobs this step.")
         return tmp_cnt
 
     @abstractmethod

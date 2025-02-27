@@ -10,9 +10,10 @@ class Scheduler:
     Base Scheduler class.
     Manages a queue/list of waiting jobs and picks which job runs next.
     """
-    def __init__(self, env, memory, batch, name="Base Scheduler"):
+    def __init__(self, env, device, memory, batch, name="Base Scheduler"):
         self.name = name
         self.env = env
+        self.device = device
         self.memory : Memory = memory
         self.batch : int = batch
         self.run_queue : list[Job] = []
@@ -39,17 +40,17 @@ class Scheduler:
             self.remove_job(job)
 
         if not self.run_queue:
-            logging.info("No jobs to run - Empty run queue.")
+            logging.info(f"{self.device.name} >> No jobs to run - Empty run queue.")
             return picked_jobs
 
-        logging.debug(f"Memory Status >> {self.memory}")
+        logging.debug(f"{self.device.name} >> Memory Status >> {self.memory}")
 
         # Template Method pattern
         next_jobs = self.pick_next_task()
         # logging.info(f"Scheduler Picked: {next_jobs}")
 
         if next_jobs is None or len(next_jobs) == 0:
-            logging.info("No jobs to run - Scheduler decision.")
+            logging.info(f"{self.device.name} >> No jobs to run - Scheduler decision.")
             return picked_jobs
 
         for next_job in next_jobs:
@@ -58,9 +59,9 @@ class Scheduler:
                 if self.memory.request(next_job.swap_size):
                     next_job.current_size = next_job.swap_size
                     next_job.swap_size = 0
-                    logging.debug(f"Job({next_job.job_id}) swapped back in...")
+                    logging.debug(f"{self.device.name} >> Job({next_job.job_id}) swapped back in...")
                 else:
-                    logging.warning(f"Job({next_job.job_id}) waiting for {next_job.swap_size} memory... Swap failed.")
+                    logging.warning(f"{self.device.name} >> Job({next_job.job_id}) waiting for {next_job.swap_size} memory... Swap failed.")
                     continue
 
             # First time running this job
@@ -69,16 +70,16 @@ class Scheduler:
                     # Allocate memory for this new job
                     next_job.current_size = next_job.init_size
                     next_job.start_time = self.env.now
-                    logging.info(f"Job({next_job.job_id}) starting...")
+                    logging.info(f"{self.device.name} >> Job({next_job.job_id}) starting...")
                 else:
-                    logging.warning(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory... Initiate failed.")
+                    logging.warning(f"{self.device.name} >> Job({next_job.job_id}) waiting for {next_job.init_size} memory... Initiate failed.")
                     continue
 
             # Run the job for 1 step
             if self.memory.request(1):
                 next_job.advance(self.env.now)
             else:
-                logging.warning(f"Job({next_job.job_id}) waiting for 1 memory... Run failed.")
+                logging.warning(f"{self.device.name} >> Job({next_job.job_id}) waiting for 1 memory... Run failed.")
                 continue
 
             # Collect the job that was run
@@ -87,7 +88,7 @@ class Scheduler:
             # If job finished after this increment, mark finish time
             if next_job.is_finished:
                 next_job.finish_time = self.env.now
-                logging.info(f"Job({next_job.job_id}) finished.")
+                logging.info(f"{self.device.name} >> Job({next_job.job_id}) finished.")
 
         # Return the next(current) job and a list of finished jobs
         return picked_jobs

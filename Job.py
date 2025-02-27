@@ -50,7 +50,9 @@ class Job:
     def advance(self, curr_time):
         if self.start_time is None:
             self.start_time = curr_time
-        self.current_size += 1
+
+        if self.state == Job.State.DECODE:
+            self.current_size += 1
 
     def __repr__(self):
         if self.is_finished:

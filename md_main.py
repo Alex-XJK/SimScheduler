@@ -7,6 +7,7 @@ from Generators.Loader import CSVSource, CSVGenerator
 from Schedulers.FCFS import FCFS
 from Schedulers.RR import RR
 from Schedulers.SRPT import SRPT
+from Schedulers.FCFS_prefill import FCFSPre
 
 
 
@@ -15,18 +16,20 @@ def main() -> SysReport:
     env = simpy.Environment()
 
     # 2. Define Device(s)
-    device1 = Device(env, memory_capacity=102400, scheduler_cls=FCFS, scheduler_kwargs={'batch': 2}, name="Device_1", tag=Device.Mode.MIXED)
-    device2 = Device(env, memory_capacity=300000, scheduler_cls=RR, scheduler_kwargs={'batch': 8, 'time_slice': 10}, name="Device_2", tag=Device.Mode.MIXED)
+    dev_p1 = Device(env, memory_capacity=102400, scheduler_cls=FCFSPre, scheduler_kwargs={'chunk_size': 256, 'chunk_time': 5}, name="Prefill_1", tag=Device.Mode.PREFILL)
+    dev_d1 = Device(env, memory_capacity=300000, scheduler_cls=RR, scheduler_kwargs={'batch': 4, 'time_slice': 10}, name="Decode_1", tag=Device.Mode.DECODE)
+    dev_d2 = Device(env, memory_capacity=100000, scheduler_cls=FCFS, scheduler_kwargs={'batch': 2}, name="Decode_2", tag=Device.Mode.DECODE)
+    dev_list = [dev_p1, dev_d1, dev_d2]
 
     # 3. Define Global Scheduler
-    global_sched = GlobalScheduler(devices=[device1, device2])
+    global_sched = GlobalScheduler(devices=dev_list)
 
     # 4. Define Generator
     generator = CSVGenerator(
         env,
         scheduler=global_sched,
         speed=1,
-        total=1000,
+        total=20,
         dropout=0.05,
         csv_sources=[
             CSVSource(nickname="AzChat23", file_path="Generators/data/AzureLLMInferenceTrace_conv.csv", fraction=0.5),
@@ -35,10 +38,10 @@ def main() -> SysReport:
     )
 
     # 5. Create the System
-    system = System(env, generator=generator, devices=[device1, device2], global_scheduler=global_sched)
+    system = System(env, generator=generator, devices=dev_list, global_scheduler=global_sched)
 
     # 6. Run the simulation
-    env.process(system.run_simulation(max_time=1000000))
+    env.process(system.run_simulation(max_time=100))
     env.run()
 
     # 7. Print results

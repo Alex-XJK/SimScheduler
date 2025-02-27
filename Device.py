@@ -30,7 +30,7 @@ class Device:
         self.name = name
         self.tag = tag
         self.memory = Memory(env, capacity=memory_capacity)
-        self.scheduler = scheduler_cls(env, self.memory, **scheduler_kwargs)
+        self.scheduler = scheduler_cls(env, self, self.memory, **scheduler_kwargs)
         self.global_scheduler = None
 
     def set_global_scheduler(self, global_scheduler):
@@ -67,9 +67,9 @@ class Device:
         Check if the job's state is supported by this device.
         """
         if self.tag == Device.Mode.PREFILL:
-            return job.state <= Job.State.PREFILL
+            return job.state == Job.State.PREFILL or job.state == Job.State.INITIAL
         elif self.tag == Device.Mode.DECODE:
-            return job.state >= Job.State.DECODE
+            return job.state == Job.State.DECODE
         elif self.tag == Device.Mode.MIXED:
             return True
         return False
