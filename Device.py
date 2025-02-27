@@ -36,7 +36,7 @@ class Device:
         """
         Add a job to the device's scheduler.
         """
-        if not self._job_state_supported(job):
+        if not self.job_state_supported(job):
             return False
         return self.scheduler.add_job(job)
 
@@ -50,7 +50,7 @@ class Device:
     def workload(self) -> int:
         return self.scheduler.num_jobs
 
-    def _job_state_supported(self, job) -> bool:
+    def job_state_supported(self, job) -> bool:
         """
         Check if the job's state is supported by this device.
         """
@@ -64,4 +64,3 @@ class Device:
 
     def __str__(self):
         return f"{self.name} ({self.tag})\n\t{self.scheduler}\n\t{self.memory}"
-
