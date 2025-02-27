@@ -40,7 +40,7 @@ class Device:
             return False
         return self.scheduler.add_job(job)
 
-    def step(self):
+    def step(self) -> list[Job]:
         """
         Advance the device's scheduler by one step.
         """
@@ -49,6 +49,10 @@ class Device:
     @property
     def workload(self) -> int:
         return self.scheduler.num_jobs
+
+    @property
+    def is_finished(self) -> bool:
+        return self.scheduler.num_jobs == 0
 
     def job_state_supported(self, job) -> bool:
         """

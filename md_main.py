@@ -15,8 +15,8 @@ def main() -> SysReport:
     env = simpy.Environment()
 
     # 2. Define Device(s)
-    device1 = Device(env, memory_capacity=1024, scheduler_cls=FCFS, scheduler_kwargs={'batch': 1}, name="Device_1", tag=Device.Mode.MIXED)
-    device2 = Device(env, memory_capacity=2048, scheduler_cls=RR, scheduler_kwargs={'batch': 8, 'time_slice': 10}, name="Device_2", tag=Device.Mode.MIXED)
+    device1 = Device(env, memory_capacity=10240, scheduler_cls=FCFS, scheduler_kwargs={'batch': 2}, name="Device_1", tag=Device.Mode.MIXED)
+    device2 = Device(env, memory_capacity=300000, scheduler_cls=RR, scheduler_kwargs={'batch': 8, 'time_slice': 10}, name="Device_2", tag=Device.Mode.MIXED)
 
     # 3. Define Global Scheduler
     global_sched = GlobalScheduler(devices=[device1, device2])
@@ -25,7 +25,7 @@ def main() -> SysReport:
     generator = CSVGenerator(
         env,
         scheduler=global_sched,
-        speed=0.02,  # NOTE: this is double the achievable throughput
+        speed=1,  # NOTE: this is double the achievable throughput
         total=1000,
         dropout=0.05,
         csv_sources=[
@@ -33,6 +33,18 @@ def main() -> SysReport:
             CSVSource(nickname="AzCode23", file_path="Generators/data/AzureLLMInferenceTrace_code.csv", fraction=0.5),
         ]
     )
+
+    # 5. Create the System
+    system = System(env, generator=generator, devices=[device1, device2])
+
+    # 6. Run the simulation
+    env.process(system.run_simulation(max_time=10000))
+    env.run()
+
+    # 7. Print results
+    print(system)
+    return system.report_stats()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')

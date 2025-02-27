@@ -21,7 +21,7 @@ class GlobalScheduler:
         Returns the selected device.
         """
         capable_devices = self._get_capable_devices(job)
-        sorted_devices = sorted(capable_devices, key=lambda d: d.workload())
+        sorted_devices = sorted(capable_devices, key=lambda d: d.workload)
         for sd in sorted_devices:
             if sd.add_job(job):
                 logging.debug(f"GlobalScheduler: Dispatched job {job.job_id} to '{sd.name}'")

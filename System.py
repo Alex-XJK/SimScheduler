@@ -3,6 +3,8 @@ import logging
 from dataclasses import dataclass
 
 from Generator import Generator
+from Device import Device
+from GlobalScheduler import GlobalScheduler
 from Memory import Memory
 from Scheduler import Scheduler
 
@@ -62,16 +64,11 @@ class System:
     The main wrapper class for the system.
     """
 
-    def __init__(self, env, memory : Memory, scheduler : Scheduler, generator : Generator):
+    def __init__(self, env, generator : Generator, devices: list[Device]):
         self.env = env
-        # Create Memory
-        self.memory = memory
 
-        # Create concrete Scheduler
-        self.scheduler = scheduler
-
-        # Create Generator
         self.generator = generator
+        self.devices = devices
 
         # Bookkeeping for completed jobs
         self.completed_jobs = []
@@ -85,14 +82,15 @@ class System:
             # 1. Generate new jobs for this step
             self.generator.generate_jobs()
 
-            # 2. Instruct the scheduler to run the next job
-            working_jobs = self.scheduler.step()
-            for current_job in working_jobs:
-                logging.debug(f"Scheduler Picked: {current_job}")
+            # 2. Instruct every device to work on their jobs
+            for device in self.devices:
+                selected_jobs = device.step()
+                for job in selected_jobs:
+                    logging.debug(f"{device.name} >> selected job {job.job_id}")
 
-            # 3. Check if we are done:
-            if self.generator.is_finished and self.scheduler.num_jobs == 0:
-                logging.info(f"All jobs completed by time {self.env.now}")
+            # 3. Check if we are done on all devices and the generator
+            if self.generator.is_finished and all(device.is_finished for device in self.devices):
+                logging.info("All devices and generator are finished.")
                 break
 
             # 4. Advance simulation time by 1 “second”
@@ -100,7 +98,7 @@ class System:
 
         # End while
         logging.info(f"Simulation ended at time {self.env.now}")
-        self.completed_jobs = self.scheduler.finished_jobs
+        self.completed_jobs = [job for device in self.devices for job in device.scheduler.finished_jobs]
 
 
     def report_stats(self) -> SysReport:
@@ -180,4 +178,8 @@ class System:
 
 
     def __str__(self):
-        return "System Report:\n\t" + str(self.memory) + "\n\t" + str(self.generator) + "\n\t" + str(self.scheduler)
+        s = f"System Report\n"
+        s += f"\t{self.generator}\n"
+        for device in self.devices:
+            s += f"\t{device}\n"
+        return s
