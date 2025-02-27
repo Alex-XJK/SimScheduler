@@ -31,6 +31,10 @@ class Device:
         self.tag = tag
         self.memory = Memory(env, capacity=memory_capacity)
         self.scheduler = scheduler_cls(env, self.memory, **scheduler_kwargs)
+        self.global_scheduler = None
+
+    def set_global_scheduler(self, global_scheduler):
+        self.global_scheduler = global_scheduler
 
     def add_job(self, job: Job) -> bool:
         """
@@ -48,7 +52,11 @@ class Device:
 
     @property
     def workload(self) -> int:
-        return self.scheduler.num_jobs
+        """
+        Return the current workload of the device.
+        The minimum value the better in this case.
+        """
+        return -self.memory.available_tokens
 
     @property
     def is_finished(self) -> bool:

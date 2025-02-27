@@ -14,8 +14,11 @@ class GlobalScheduler:
           - devices: A list of Device instances.
         """
         self.devices = devices
+        for d in self.devices:
+            d.set_global_scheduler(self)
+        self.queue: list[Job] = []
 
-    def dispatch_job(self, job: Job) -> Device|None:
+    def _dispatch_job(self, job: Job) -> Device|None:
         """
         Select a device based on the current workload and dispatch the job to it.
         Returns the selected device.
@@ -29,6 +32,21 @@ class GlobalScheduler:
 
         logging.warning(f"GlobalScheduler: No capable device found for job {job.job_id}")
         return None
+
+    def receive_job(self, job: Job):
+        """
+        Receive a new job from the system.
+        """
+        self.queue.append(job)
+        return True
+
+    def step(self):
+        """
+        Main step function called by the system.
+        """
+        for job in self.queue:
+            if self._dispatch_job(job) is not None:
+                self.queue.remove(job)
 
     def _get_capable_devices(self, job: Job) -> list[Device]:
         """

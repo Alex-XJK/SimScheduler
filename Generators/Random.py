@@ -25,7 +25,7 @@ class RandomGenerator(Generator):
         m = self.output_size_fn()
 
         job = Job(job_id=self.job_id, arrival_time=arrival_time, init_size=p, expected_output=m)
-        if self.scheduler.add_job(job):
+        if self.scheduler.receive_job(job):
             self.counter_init.append(p)
             self.counter_output.append(m)
             return True

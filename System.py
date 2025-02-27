@@ -64,11 +64,12 @@ class System:
     The main wrapper class for the system.
     """
 
-    def __init__(self, env, generator : Generator, devices: list[Device]):
+    def __init__(self, env, generator : Generator, devices: list[Device], global_scheduler: GlobalScheduler):
         self.env = env
 
         self.generator = generator
         self.devices = devices
+        self.global_scheduler = global_scheduler
 
         # Bookkeeping for completed jobs
         self.completed_jobs = []
@@ -82,18 +83,21 @@ class System:
             # 1. Generate new jobs for this step
             self.generator.generate_jobs()
 
-            # 2. Instruct every device to work on their jobs
+            # 2. Dispatch jobs to devices
+            self.global_scheduler.step()
+
+            # 3. Instruct every device to work on their jobs
             for device in self.devices:
                 selected_jobs = device.step()
                 for job in selected_jobs:
                     logging.debug(f"{device.name} >> selected job {job.job_id}")
 
-            # 3. Check if we are done on all devices and the generator
+            # 4. Check if we are done on all devices and the generator
             if self.generator.is_finished and all(device.is_finished for device in self.devices):
                 logging.info("All devices and generator are finished.")
                 break
 
-            # 4. Advance simulation time by 1 “second”
+            # 5. Advance simulation time by 1 “second”
             yield self.env.timeout(1)
 
         # End while
