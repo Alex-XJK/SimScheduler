@@ -117,7 +117,7 @@ class System:
         """
         Waiting Time    = [start - arrival]
         """
-        waiting_times = [job.start_time - job.arrival_time for job in self.completed_jobs]
+        waiting_times = [job.decode_start_time - job.arrival_time for job in self.completed_jobs]
         sysreport.waiting_times = waiting_times
 
         average_waiting_time = sum(waiting_times) / len(waiting_times)
@@ -126,7 +126,7 @@ class System:
         """
         Turnaround Time = [finish - arrival]
         """
-        turnaround_times = [job.finish_time - job.arrival_time for job in self.completed_jobs]
+        turnaround_times = [job.decode_finish_time - job.arrival_time for job in self.completed_jobs]
         sysreport.turnaround_times = turnaround_times
 
         average_turnaround_time = sum(turnaround_times) / len(turnaround_times)
@@ -161,7 +161,7 @@ class System:
         """
         Service Time    = [finish - start]
         """
-        service_times = [job.finish_time - job.start_time for job in self.completed_jobs]
+        service_times = [job.decode_finish_time - job.decode_start_time for job in self.completed_jobs]
         sysreport.service_times = service_times
 
         average_service_time = sum(service_times) / len(service_times)
