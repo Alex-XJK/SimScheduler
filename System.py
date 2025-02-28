@@ -5,8 +5,7 @@ from dataclasses import dataclass
 from Generator import Generator
 from Device import Device
 from GlobalScheduler import GlobalScheduler
-from Memory import Memory
-from Scheduler import Scheduler
+from Job import Job
 
 
 @dataclass
@@ -89,8 +88,16 @@ class System:
             # 3. Instruct every device to work on their jobs
             for device in self.devices:
                 selected_jobs = device.step()
+                s = f"{device.name} :: ["
                 for job in selected_jobs:
-                    logging.debug(f"{device.name} >> selected Job({job.job_id})")
+                    if job.state == Job.State.PREFILL:
+                        s += f"{job.job_id}(P), "
+                    elif job.state == Job.State.DECODE:
+                        s += f"{job.job_id}(D), "
+                    else:
+                        s += f"{job.job_id}(?), "
+                s += f"]"
+                logging.debug(s)
 
             # 4. Check if we are done on all devices and the generator
             if self.generator.is_finished and all(device.is_finished for device in self.devices):
