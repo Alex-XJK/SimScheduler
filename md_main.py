@@ -20,7 +20,7 @@ def main() -> SysReport:
     dev_p1 = Device(env,
                     name="Prefill_1", tag=Device.Mode.PREFILL,
                     memory_capacity=100000, memory_kwargs={'threshold': 0.95},
-                    scheduler_cls=RRPre, scheduler_kwargs={'chunk_size': 256, 'chunk_time': 5})
+                    scheduler_cls=FCFSPre, scheduler_kwargs={'chunk_size': 256, 'chunk_time': 5})
     # Our new fancy decode device
     dev_d1 = Device(env,
                     name="Decode_1", tag=Device.Mode.DECODE,
@@ -46,7 +46,7 @@ def main() -> SysReport:
         env,
         scheduler=global_sched,
         speed=2,
-        total=100,
+        total=1000,
         dropout=0.05,
         csv_sources=[
             CSVSource(nickname="AzChat23", file_path="Generators/data/AzureLLMInferenceTrace_conv.csv", fraction=0.5),
