@@ -25,6 +25,7 @@ class GlobalScheduler:
         for d in self.devices:
             d.set_global_scheduler(self)
         self.queue: list[Job] = []
+        self.statistics = dict.fromkeys(self.devices, 0)
 
     def _dispatch_job(self, job: Job) -> Device|None:
         """
@@ -37,6 +38,7 @@ class GlobalScheduler:
         for sd in sorted_devices:
             if sd.add_job(job):
                 logging.debug(f"G-S >> Dispatched Job({job.job_id}) to '{sd.name}'")
+                self.statistics[sd] += 1
                 return sd
 
         logging.warning(f"G-S >> No capable device found for Job({job.job_id})")
@@ -62,3 +64,9 @@ class GlobalScheduler:
         Return a list of devices that can support the job's state.
         """
         return [d for d in self.devices if d.job_state_supported(job)]
+
+    def __str__(self):
+        s = "Global Scheduler\n"
+        for d in self.devices:
+            s += f"\t{d.name} ({d.tag}) :: dispatched {self.statistics[d]} jobs\n"
+        return s
