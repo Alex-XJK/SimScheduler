@@ -3,6 +3,14 @@ import logging
 from Device import Device
 from Job import Job
 
+
+def print_devices(devices: list[Device]) -> str:
+    msg = "Devices:\t"
+    for d in devices:
+        msg += f"{d.name}({d.tag}) {d.workload:.4f}\t"
+    return msg
+
+
 class GlobalScheduler:
     """
     Global scheduler that dispatches jobs to a pool of devices.
@@ -25,12 +33,13 @@ class GlobalScheduler:
         """
         capable_devices = self._get_capable_devices(job)
         sorted_devices = sorted(capable_devices, key=lambda d: d.workload)
+        logging.debug(f"G-S >> Capable {print_devices(sorted_devices)}")
         for sd in sorted_devices:
             if sd.add_job(job):
-                logging.debug(f"G-S >> Dispatched job {job.job_id} to '{sd.name}'")
+                logging.debug(f"G-S >> Dispatched Job({job.job_id}) to '{sd.name}'")
                 return sd
 
-        logging.warning(f"G-S >> No capable device found for job {job.job_id}")
+        logging.warning(f"G-S >> No capable device found for Job({job.job_id})")
         return None
 
     def receive_job(self, job: Job):

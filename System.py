@@ -90,7 +90,7 @@ class System:
             for device in self.devices:
                 selected_jobs = device.step()
                 for job in selected_jobs:
-                    logging.debug(f"{device.name} >> selected job {job.job_id}")
+                    logging.debug(f"{device.name} >> selected Job({job.job_id})")
 
             # 4. Check if we are done on all devices and the generator
             if self.generator.is_finished and all(device.is_finished for device in self.devices):

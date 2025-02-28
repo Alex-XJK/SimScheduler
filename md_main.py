@@ -16,9 +16,9 @@ def main() -> SysReport:
     env = simpy.Environment()
 
     # 2. Define Device(s)
-    dev_p1 = Device(env, memory_capacity=102400, scheduler_cls=FCFSPre, scheduler_kwargs={'chunk_size': 256, 'chunk_time': 5}, name="Prefill_1", tag=Device.Mode.PREFILL)
-    dev_d1 = Device(env, memory_capacity=300000, scheduler_cls=RR, scheduler_kwargs={'batch': 4, 'time_slice': 10}, name="Decode_1", tag=Device.Mode.DECODE)
-    dev_d2 = Device(env, memory_capacity=100000, scheduler_cls=FCFS, scheduler_kwargs={'batch': 2}, name="Decode_2", tag=Device.Mode.DECODE)
+    dev_p1 = Device(env, memory_capacity=102400, scheduler_cls=FCFSPre, memory_kwargs={'threshold': 0.95}, scheduler_kwargs={'chunk_size': 256, 'chunk_time': 5}, name="Prefill_1", tag=Device.Mode.PREFILL)
+    dev_d1 = Device(env, memory_capacity=300000, scheduler_cls=RR, memory_kwargs={'threshold': 0.95}, scheduler_kwargs={'batch': 4, 'time_slice': 10}, name="Decode_1", tag=Device.Mode.DECODE)
+    dev_d2 = Device(env, memory_capacity=100000, scheduler_cls=FCFS,  memory_kwargs={'threshold': 0.95}, scheduler_kwargs={'batch': 2}, name="Decode_2", tag=Device.Mode.DECODE)
     dev_list = [dev_p1, dev_d1, dev_d2]
 
     # 3. Define Global Scheduler
@@ -50,6 +50,9 @@ def main() -> SysReport:
 
 
 if __name__ == "__main__":
+    """
+    Main entry point for multi-device simulation.
+    """
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
     res = main()

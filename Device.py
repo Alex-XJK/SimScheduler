@@ -25,12 +25,12 @@ class Device:
         DECODE  = "Decode Only"
         MIXED   = "Mixed Operations"
 
-    def __init__(self, env, memory_capacity, scheduler_cls, scheduler_kwargs, name="Device", tag=Mode.DECODE):
+    def __init__(self, env, memory_capacity,memory_kwargs, scheduler_cls, scheduler_kwargs, name="Device", tag=Mode.DECODE):
         self.env = env
         self.name = name
         self.tag = tag
-        self.memory = Memory(env, capacity=memory_capacity)
-        self.scheduler = scheduler_cls(env, self, self.memory, **scheduler_kwargs)
+        self.memory = Memory(env, capacity=memory_capacity, **memory_kwargs)
+        self.scheduler = scheduler_cls(env, device=self, memory=self.memory, **scheduler_kwargs)
         self.global_scheduler = None
 
     def set_global_scheduler(self, global_scheduler):
@@ -56,7 +56,7 @@ class Device:
         Return the current workload of the device.
         The minimum value the better in this case.
         """
-        return -self.memory.available_tokens
+        return 0.02 * self.scheduler.num_jobs + 1.0 * (self.memory.occupied_tokens / self.memory.safe_capacity)
 
     @property
     def is_finished(self) -> bool:
@@ -75,4 +75,4 @@ class Device:
         return False
 
     def __str__(self):
-        return f"{self.name} ({self.tag})\n\t{self.scheduler}\n\t{self.memory}"
+        return f"{self.name} ({self.tag.value})\n\t{self.scheduler}\n\t{self.memory}"
