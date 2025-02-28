@@ -124,8 +124,8 @@ class CSVGenerator(Generator):
                   arrival_time=arrival_time,
                   init_size=init_size,
                   expected_output=expected_output)
+        logging.debug(f"Loader >> Loaded job {self.job_id} [{init_size}/{expected_output}] from source '{selected_source.nickname}'")
         if self.scheduler.receive_job(job):
-            logging.debug(f"Loader >> Loaded job {self.job_id} [{init_size}/{expected_output}] from source '{selected_source.nickname}'")
             return True
         return False
 

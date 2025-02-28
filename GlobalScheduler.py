@@ -49,6 +49,7 @@ class GlobalScheduler:
         Receive a new job from the system.
         """
         self.queue.append(job)
+        logging.debug(f"G-S >> Received Job({job.job_id}), queue length: {len(self.queue)}")
         return True
 
     def step(self):
