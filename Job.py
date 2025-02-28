@@ -28,6 +28,8 @@ class Job:
         self.swap_size = 0  # For swapping-enabled schedulers only
         # For statistics
         self.arrival_time = arrival_time
+        self.prefill_start_time = None
+        self.prefill_finish_time = None
         self.decode_start_time = None
         self.decode_finish_time = None
 
@@ -55,8 +57,10 @@ class Job:
             self.current_size += 1
 
     def __repr__(self):
-        if self.is_finished:
+        if self.is_finished or self.state == Job.State.FINISHED:
             return f"Job({self.job_id}): Finished at {self.decode_finish_time}"
+        elif self.state == Job.State.PREFILL:
+            return f"Job({self.job_id}): Prefilling... started at {self.prefill_start_time}"
         else:
             progress = ((self.current_size - self.init_size) / (self.final_size - self.init_size)) * 100
-            return f"Job({self.job_id}): [{self.init_size} --> {self.current_size} --> {self.final_size}] {progress:.1f}%"
+            return f"Job({self.job_id}): Decoding... [{self.init_size} --> {self.current_size} --> {self.final_size}] {progress:.1f}%"

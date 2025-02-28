@@ -41,7 +41,7 @@ def main() -> SysReport:
     system = System(env, generator=generator, devices=dev_list, global_scheduler=global_sched)
 
     # 6. Run the simulation
-    env.process(system.run_simulation(max_time=100))
+    env.process(system.run_simulation(max_time=1000))
     env.run()
 
     # 7. Print results

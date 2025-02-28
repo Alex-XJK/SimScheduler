@@ -19,6 +19,9 @@ class Scheduler:
         self.run_queue : list[Job] = []
         self.finished_jobs : list[Job] = []
 
+    def get_finished_jobs(self) -> list[Job]:
+        return self.finished_jobs
+
     def add_job(self, job : Job) -> bool:
         self.run_queue.append(job)
         return True
@@ -43,7 +46,7 @@ class Scheduler:
             logging.info(f"{self.device.name} >> No jobs to run - Empty run queue.")
             return picked_jobs
 
-        logging.debug(f"{self.device.name} >> Memory Status >> {self.memory}")
+        logging.debug(f"{self.device.name} >> {self.memory}")
 
         # Template Method pattern
         next_jobs = self.pick_next_task()

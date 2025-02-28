@@ -12,16 +12,16 @@ class FCFSPre(Scheduler):
         super().__init__(env, device, memory, 1,"FCFS-Pre")
         self.chunk_size = chunk_size
         self.chunk_time = chunk_time
-        self.cur_job = None
+        self.cur_job: Job|None = None
         self.cur_job_time = 0
         self.cur_job_expected_time = 0
 
     def step(self) -> list[Job]:
         """
-        We have to override the step method to handle the prefill stage.
+        We have to override the entire step method to handle the prefill stage.
         """
         # If we have a job in progress, check if it's done.
-        logging.debug(f"{self.device.name} >> Memory Status >> {self.memory}")
+        logging.debug(f"{self.device.name} >> {self.memory}")
 
         if self.cur_job is not None:
             if self.cur_job_time >= self.cur_job_expected_time:
@@ -31,6 +31,7 @@ class FCFSPre(Scheduler):
                 self.run_queue.remove(self.cur_job)  # I did not use remove_job() because it's not finished yet.
                 # Hand back to the global scheduler
                 self.cur_job.state = Job.State.DECODE
+                self.cur_job.prefill_finish_time = self.env.now
                 self.device.global_scheduler.receive_job(self.cur_job)
                 # Reset local state
                 self.cur_job = None
@@ -53,6 +54,7 @@ class FCFSPre(Scheduler):
             logging.warning(f"{self.device.name} >> Job({self.cur_job.job_id}) failed to allocate {self.cur_job.init_size} tokens.")
             return []
 
+        self.cur_job.prefill_start_time = self.env.now
         self.cur_job.state = Job.State.PREFILL
         self.cur_job.advance(self.env.now)
         self.cur_job_time = 0
