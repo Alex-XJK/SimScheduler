@@ -22,6 +22,7 @@ class SysReport:
     turnaround_times: list[int] = None
     service_times: list[int] = None
     normalized_turnaround_times: list[float] = None
+    ttft_times: list[int] = None
     # Computed statistics
     average_waiting_time: float = 0.0
     average_turnaround_time: float = 0.0
@@ -36,12 +37,17 @@ class SysReport:
     max_normalized_turnaround: float = 0.0
     p95_normalized_turnaround: float = 0.0
     p99_normalized_turnaround: float = 0.0
+    # TTFT metrics
+    average_ttft: float = 0.0
+    max_ttft: float = 0.0
+    p95_ttft: float = 0.0
+    p99_ttft: float = 0.0
 
     def __str__(self):
         return f"""
         -------------------- Simulation Results --------------------
         Total Time Elapsed: {self.total_time}
-        Total Jobs Started: {self.finished_jobs}
+        Total Jobs Finished: {self.finished_jobs}
         Throughput: {self.throughput:.10f}
         -------------------- Job Statistics --------------------
         Average Waiting Time: {self.average_waiting_time:.2f}
@@ -55,6 +61,10 @@ class SysReport:
         Average Slowdown: {self.average_normalized_turnaround:.2f}
         95th Percentile Slowdown: {self.p95_normalized_turnaround:.2f}
         99th Percentile Slowdown: {self.p99_normalized_turnaround:.2f}
+        Average TTFT: {self.average_ttft:.2f}
+        Max TTFT: {self.max_ttft:.2f}
+        95th Percentile TTFT: {self.p95_ttft:.2f}
+        99th Percentile TTFT: {self.p99_ttft:.2f}
         -------------------- End of Report --------------------
         """
 
@@ -122,6 +132,22 @@ class System:
             return sysreport
 
         """
+        Time-To-First-Token (TTFT) = [decode.start - arrival]
+        """
+        ttft_times = [job.decode_start_time - job.arrival_time for job in self.completed_jobs]
+        sysreport.ttft_times = ttft_times
+
+        sysreport.average_ttft = sum(ttft_times) / len(ttft_times)
+        sysreport.max_ttft = max(ttft_times)
+
+        ttft_times_sorted = sorted(ttft_times)
+        p95_index = int(0.95 * len(ttft_times_sorted))
+        p99_index = int(0.99 * len(ttft_times_sorted))
+        sysreport.p95_ttft = ttft_times_sorted[p95_index]
+        sysreport.p99_ttft = ttft_times_sorted[p99_index]
+
+        # TODO: Definition of waiting time? [(prefill.start - arrival) + (decode.start - prefill.finish)]
+        """
         Waiting Time    = [start - arrival]
         """
         waiting_times = [job.decode_start_time - job.arrival_time for job in self.completed_jobs]
@@ -131,7 +157,7 @@ class System:
         sysreport.average_waiting_time = average_waiting_time
 
         """
-        Turnaround Time = [finish - arrival]
+        Turnaround Time = [decode.finish - arrival]
         """
         turnaround_times = [job.decode_finish_time - job.arrival_time for job in self.completed_jobs]
         sysreport.turnaround_times = turnaround_times
@@ -143,8 +169,6 @@ class System:
         sysreport.max_turnaround_time = max_turnaround_time
 
         turnaround_times_sorted = sorted(turnaround_times)
-        p95_index = int(0.95 * len(turnaround_times_sorted))
-        p99_index = int(0.99 * len(turnaround_times_sorted))
         p95_turnaround = turnaround_times_sorted[p95_index]
         p99_turnaround = turnaround_times_sorted[p99_index]
         sysreport.p95_turnaround = p95_turnaround
@@ -165,6 +189,7 @@ class System:
         sysreport.p95_normalized_turnaround = normalized_turnaround_sorted[p95_index]
         sysreport.p99_normalized_turnaround = normalized_turnaround_sorted[p99_index]
 
+        # TODO: Definition of service time? [(decode.finish - decode.start) + (prefill.finish - prefill.start)]
         """
         Service Time    = [finish - start]
         """
