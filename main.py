@@ -56,10 +56,10 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysRep
     generator = Generator(
         env,
         scheduler=scheduler,
-        speed=0.02,  # NOTE: this is double the achievable throughput
+        speed=0.008,  # NOTE: this is double the achievable throughput
         total=1000,
         init_fn=lambda: random.randint(1024, 2048),
-        output_fn=lambda: zipf(s=1.98, min_tokens=256, max_tokens=16384),
+        output_fn=lambda: random.randint(256, 16384),
         dropout=0.05
     )
 

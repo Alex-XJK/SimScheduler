@@ -52,7 +52,7 @@ class SRPT(Scheduler):
                 can_swap_in = True
 
                 # Swap out lowest priority request until we can swap in
-                while not self.memory.request(max(job.swap_size, job.init_size)):
+                while not self.memory.request(max(job.swap_size, job.init_size) + 1):
                     found = False
                     for j in range(len(self.run_queue)-1, i, -1):
                         if self.run_queue[j].current_size > 0:
