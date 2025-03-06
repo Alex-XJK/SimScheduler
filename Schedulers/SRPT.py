@@ -9,8 +9,8 @@ class SRPT(Scheduler):
     """
     Shortest Remaining Processing Time (SRPT) Scheduler.
     """
-    def __init__(self, env, memory, batch, priority_quantum, starvation_threshold):
-        super().__init__(env, memory, batch,"SRPT")
+    def __init__(self, env, device, memory, batch, priority_quantum, starvation_threshold):
+        super().__init__(env, device, memory, batch,"SRPT")
         self.priority_quantum = priority_quantum
         self.starvation_threshold = starvation_threshold
         self.wait_queue = []

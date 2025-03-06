@@ -3,6 +3,8 @@ import random
 import logging
 from abc import abstractmethod
 
+from GlobalScheduler import GlobalScheduler
+from Job import Job
 
 class Generator:
     """
@@ -14,7 +16,7 @@ class Generator:
     - name: name of the generator (for debugging).
     """
 
-    def __init__(self, env, scheduler, speed, total, dropout=0.0, name="Base Generator"):
+    def __init__(self, env, scheduler: GlobalScheduler, speed: float, total: int, dropout: float = 0.0, name: str = "Base Generator"):
         self.env = env
         self.name = name
         self.scheduler = scheduler
@@ -61,7 +63,7 @@ class Generator:
                 self.job_id += 1
 
         if tmp_cnt > 0:
-            logging.debug(f"Generator Status >> Generated {tmp_cnt} jobs this step.")
+            logging.debug(f"Generator >> Generated {tmp_cnt} jobs this step.")
         return tmp_cnt
 
     @abstractmethod

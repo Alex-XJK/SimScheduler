@@ -5,8 +5,8 @@ class FCFS(Scheduler):
     """
     A First-Come-First-Serve Scheduler.
     """
-    def __init__(self, env, memory, batch):
-        super().__init__(env, memory, batch,"FCFS")
+    def __init__(self, env, device, memory, batch):
+        super().__init__(env, device, memory, batch,"FCFS")
 
     def pick_next_task(self):
         # Every time, pick the first batch jobs in the queue

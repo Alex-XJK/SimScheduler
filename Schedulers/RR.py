@@ -8,8 +8,8 @@ class RR(Scheduler):
     But queue new jobs when the memory is (near) full.
     And swap out jobs when the memory is full.
     """
-    def __init__(self, env, memory, batch, time_slice=1):
-        super().__init__(env, memory, batch, f"RR{time_slice}")
+    def __init__(self, env, device, memory, batch, time_slice=1):
+        super().__init__(env, device, memory, batch, f"RR{time_slice}")
         self.time_slice = time_slice
         self.wait_queue = []
 

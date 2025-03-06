@@ -10,13 +10,17 @@ class Scheduler:
     Base Scheduler class.
     Manages a queue/list of waiting jobs and picks which job runs next.
     """
-    def __init__(self, env, memory, batch, name="Base Scheduler"):
+    def __init__(self, env, device, memory, batch, name="Base Scheduler"):
         self.name = name
         self.env = env
+        self.device = device
         self.memory : Memory = memory
         self.batch : int = batch
         self.run_queue : list[Job] = []
         self.finished_jobs : list[Job] = []
+
+    def get_finished_jobs(self) -> list[Job]:
+        return self.finished_jobs
 
     def add_job(self, job : Job) -> bool:
         self.run_queue.append(job)
@@ -39,46 +43,46 @@ class Scheduler:
             self.remove_job(job)
 
         if not self.run_queue:
-            logging.info("No jobs to run - Empty run queue.")
+            logging.info(f"{self.device.name} >> No jobs to run - Empty run queue.")
             return picked_jobs
 
-        logging.debug(f"Memory Status >> {self.memory}")
+        logging.debug(f"{self.device.name} >> {self.memory}")
 
         # Template Method pattern
         next_jobs = self.pick_next_task()
         # logging.info(f"Scheduler Picked: {next_jobs}")
 
         if next_jobs is None or len(next_jobs) == 0:
-            logging.info("No jobs to run - Scheduler decision.")
+            logging.info(f"{self.device.name} >> No jobs to run - Scheduler decision.")
             return picked_jobs
 
         for next_job in next_jobs:
             # If this is a swapped out job, we need to re-allocate memory for it
-            if next_job.current_size == 0 and next_job.swap_size > 0 and next_job.start_time is not None:
+            if next_job.current_size == 0 and next_job.swap_size > 0 and next_job.decode_start_time is not None:
                 if self.memory.request(next_job.swap_size):
                     next_job.current_size = next_job.swap_size
                     next_job.swap_size = 0
-                    logging.debug(f"Job({next_job.job_id}) swapped back in...")
+                    logging.debug(f"{self.device.name} >> Job({next_job.job_id}) swapped back in...")
                 else:
-                    logging.warning(f"Job({next_job.job_id}) waiting for {next_job.swap_size} memory... Swap failed.")
+                    logging.warning(f"{self.device.name} >> Job({next_job.job_id}) waiting for {next_job.swap_size} memory... Swap failed.")
                     continue
 
             # First time running this job
-            if next_job.current_size == 0 and next_job.start_time is None:
+            if next_job.current_size == 0 and next_job.decode_start_time is None:
                 if self.memory.request(next_job.init_size):
                     # Allocate memory for this new job
                     next_job.current_size = next_job.init_size
-                    next_job.start_time = self.env.now
-                    logging.info(f"Job({next_job.job_id}) starting...")
+                    next_job.decode_start_time = self.env.now
+                    logging.info(f"{self.device.name} >> Job({next_job.job_id}) starting...")
                 else:
-                    logging.warning(f"Job({next_job.job_id}) waiting for {next_job.init_size} memory... Initiate failed.")
+                    logging.warning(f"{self.device.name} >> Job({next_job.job_id}) waiting for {next_job.init_size} memory... Initiate failed.")
                     continue
 
             # Run the job for 1 step
             if self.memory.request(1):
                 next_job.advance(self.env.now)
             else:
-                logging.warning(f"Job({next_job.job_id}) waiting for 1 memory... Run failed.")
+                logging.warning(f"{self.device.name} >> Job({next_job.job_id}) waiting for 1 memory... Run failed.")
                 continue
 
             # Collect the job that was run
@@ -86,8 +90,8 @@ class Scheduler:
 
             # If job finished after this increment, mark finish time
             if next_job.is_finished:
-                next_job.finish_time = self.env.now
-                logging.info(f"Job({next_job.job_id}) finished.")
+                next_job.decode_finish_time = self.env.now
+                logging.info(f"{self.device.name} >> Job({next_job.job_id}) finished.")
 
         # Return the next(current) job and a list of finished jobs
         return picked_jobs
