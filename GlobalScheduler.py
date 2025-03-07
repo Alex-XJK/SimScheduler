@@ -52,10 +52,53 @@ class GlobalScheduler:
         logging.debug(f"G-S >> Received Job({job.job_id}), queue length: {len(self.queue)}")
         return True
 
+    def proactively_load_balance(self) -> int:
+        """
+        Proactively load balance the devices.
+        Check and move preempt-able jobs from the heavily loaded devices to the lightly loaded devices.
+        :return: The number of jobs moved.
+        TODO: How many jobs to move?
+        """
+        moved_jobs = 0
+        # Check Prefill stage jobs from Prefill-only or Mixed Devices
+        prefill_devices = [d for d in self.devices if (d.tag == Device.Mode.PREFILL or d.tag == Device.Mode.MIXED)]
+        sorted_pd = sorted(prefill_devices, key=lambda d: d.workload, reverse=True)
+        lightest_prefill = sorted_pd[-1]
+        for heavier_prefill in sorted_pd:
+            if heavier_prefill.workload > 1.2 * lightest_prefill.workload:
+                victim_job = heavier_prefill.scheduler.pick_movable_job([Job.State.INITIAL, Job.State.PREFILL])
+                if (
+                        victim_job is not None and
+                        heavier_prefill.scheduler.preempt_job(victim_job) and
+                        lightest_prefill.add_job(victim_job)
+                ):
+                    moved_jobs += 1
+                    logging.debug(f"G-S >> Moving Job({victim_job.job_id}) from '{heavier_prefill.name}' to '{lightest_prefill.name}'")
+                    break
+
+        # Check Decode stage jobs from Decode-only or Mixed Devices
+        decode_devices = [d for d in self.devices if (d.tag == Device.Mode.DECODE or d.tag == Device.Mode.MIXED)]
+        sorted_dd = sorted(decode_devices, key=lambda d: d.workload, reverse=True)
+        lightest_decode = sorted_dd[-1]
+        for heavier_decode in sorted_dd:
+            if heavier_decode.workload > 1.2 * lightest_decode.workload:
+                victim_job = heavier_decode.scheduler.pick_movable_job([Job.State.DECODE])
+                if (
+                        victim_job is not None and
+                        heavier_decode.scheduler.preempt_job(victim_job) and
+                        lightest_decode.add_job(victim_job)
+                ):
+                    moved_jobs += 1
+                    logging.debug(f"G-S >> Moving Job({victim_job.job_id}) from '{heavier_decode.name}' to '{lightest_decode.name}'")
+        return moved_jobs
+
     def step(self):
         """
         Main step function called by the system.
         """
+        # Proactively load balance the devices
+        self.proactively_load_balance()
+        # Dispatch jobs in the queue
         for job in self.queue:
             if self._dispatch_job(job) is not None:
                 self.queue.remove(job)
