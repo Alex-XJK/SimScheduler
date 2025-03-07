@@ -66,6 +66,32 @@ class FCFSPre(Scheduler):
         logging.debug(f"{self.device.name} >> Job({self.cur_job.job_id}) start prefilling for {self.cur_job_expected_time} steps...")
         return [self.cur_job]
 
+    def pick_movable_job(self, expected_stages: list[Job.State]) -> Job|None:
+        """
+        Override the pick_movable_job method for prefill specific behavior.
+        We do not know how to move a Prefill stage job.
+        But due to the FCFS nature, all non-running jobs are movable.
+        """
+        if len(self.run_queue) == 0 or Job.State.PREFILL not in expected_stages:
+            return None
+        for i, job in enumerate(self.run_queue):
+            if job == self.cur_job:
+                continue
+            if i < self.batch:
+                continue
+            return job
+        return None
+
+    def preempt_job(self, job : Job) -> bool:
+        """
+        Override the preempt_job method to adopt the prefill specific behavior.
+        """
+        # We do not support preemption in the prefill stage
+        if job == self.cur_job:
+            return False
+        # We do not need to free up memory for a job that is not running
+        self.run_queue.remove(job)
+        return True
 
     def pick_next_task(self):
         pass

@@ -103,6 +103,21 @@ class RRPre(Scheduler):
         logging.debug(f"{self.device.name} >> Job({self.cur_progress.job.job_id}) prefilling for {self.cur_progress.total_running_time}/{self.cur_progress.expected_time} steps...")
         return [self.cur_progress.job]
 
+    def pick_movable_job(self, expected_stages: list[Job.State]) -> Job|None:
+        """
+        Override the pick_movable_job method for prefill specific behavior.
+        We do not know how to move a Prefill stage job.
+        """
+        # TODO: Implement this method
+        return None
+
+    def preempt_job(self, job : Job) -> bool:
+        """
+        Override the preempt_job method to adopt the prefill specific behavior.
+        We do not know how to move a Prefill stage job.
+        """
+        # TODO: Implement this method
+        return False
 
     def pick_next_task(self):
         pass
