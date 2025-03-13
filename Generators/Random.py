@@ -1,5 +1,5 @@
 from Job import Job
-from Generator import Generator
+from Generators.BaseGenerator import Generator
 
 class RandomGenerator(Generator):
     """

@@ -2,7 +2,7 @@ import csv
 import logging
 from dataclasses import dataclass, field
 from typing import List, Dict
-from Generator import Generator
+from Generators.BaseGenerator import Generator
 from Job import Job
 
 

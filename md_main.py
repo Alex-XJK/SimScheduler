@@ -2,12 +2,11 @@ import simpy
 import logging
 from System import System, SysReport
 from Device import Device
-from GlobalScheduler import GlobalScheduler
+from Schedulers.GlobalScheduler import GlobalScheduler
 from Generators.Loader import CSVSource, CSVGenerator
 from Schedulers.FCFS import FCFS
 from Schedulers.RR import RR
 from Schedulers.FCFS_prefill import FCFSPre
-from Schedulers.RR_prefill import RRPre
 from Schedulers.Hybrid_FR import HybridFR
 
 

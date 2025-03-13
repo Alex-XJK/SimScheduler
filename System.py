@@ -1,10 +1,9 @@
-import simpy
 import logging
 from dataclasses import dataclass
 
-from Generator import Generator
+from Generators.BaseGenerator import Generator
 from Device import Device
-from GlobalScheduler import GlobalScheduler
+from Schedulers.GlobalScheduler import GlobalScheduler
 from Job import Job
 
 

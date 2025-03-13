@@ -1,7 +1,6 @@
-import simpy
 import logging
 import math
-from Scheduler import Scheduler
+from Schedulers.BaseScheduler import Scheduler
 from Job import Job
 
 class FCFSPre(Scheduler):

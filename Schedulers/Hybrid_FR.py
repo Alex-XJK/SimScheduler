@@ -1,6 +1,5 @@
-import simpy
 import logging
-from Scheduler import Scheduler
+from Schedulers.BaseScheduler import Scheduler
 from Schedulers.FCFS_prefill import FCFSPre
 from Schedulers.RR import RR
 from Job import Job
