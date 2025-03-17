@@ -139,6 +139,6 @@ class GlobalScheduler:
 
     def __str__(self):
         s = "Global Scheduler\n"
-        for d in self.devices:
-            s += f"\t{d.name} ({d.tag}) :: dispatched {self.statistics[d]} jobs\n"
+        for d, count in self.statistics.items():
+            s += f"\t{d.name}({d.tag}) :: dispatched {count} jobs\n"
         return s

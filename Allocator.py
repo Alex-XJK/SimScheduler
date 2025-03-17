@@ -26,6 +26,8 @@ class Allocator:
         self.device_capable_counts = {mode: 0 for mode in Device.Mode}
         for device in self.online_devices:
             self.device_capable_counts[device.tag] += 1
+        self.working_counters = {device: 0 for device in all_devices}
+
 
     def step(self) -> None:
         """
@@ -33,6 +35,10 @@ class Allocator:
         """
         # 1. Check usage of each online device
         for device in self.online_devices:
+            # Register working counters
+            self.working_counters[device] += 1
+
+            # Update idle counter
             if device.workload < 1e-6:
                 self.idle_counters[device] += 1
             else:
@@ -53,29 +59,33 @@ class Allocator:
         Take 'device' offline. Remove it from the GlobalScheduler and from the online list.
         """
         if device in self.online_devices:
+            logging.info(f"Allocator >> Prepare to offline device '{device.name}'")
             self.online_devices.remove(device)
             self.device_capable_counts[device.tag] -= 1
+            self.idle_counters[device] = 0
             self.offline_devices.append(device)
             self.global_scheduler.remove_device(device)
-            logging.info(f"Allocator >> Offline device {device.name}")
 
     def online_device(self, device) -> None:
         """
         Bring 'device' back online, add it to the GlobalScheduler.
         """
         if device in self.offline_devices:
+            logging.info(f"Allocator >> Prepare to online device '{device.name}'")
             self.offline_devices.remove(device)
             self.online_devices.append(device)
             self.device_capable_counts[device.tag] += 1
+            self.idle_counters[device] = 0
             self.global_scheduler.add_device(device)
-            logging.info(f"Allocator >> Online device {device.name}")
 
     def _okay_to_offline(self, device: Device) -> bool:
         """
         Check if it's okay to offline the device.
 
         Policy:
-        - We want to keep at least one device for Prefill and Decode
+        - We want to keep at least one device for Prefill, so that we can get ready for future user requests.
+        - We should be able to offline all Decode devices if we have no Prefill jobs, and no running Decode jobs.
+            - But this should also mean we finished the whole simulation :)
 
         :param device: The device to check.
         :return: True if it's okay to offline the device, False otherwise.
@@ -94,4 +104,7 @@ class Allocator:
             return False
 
     def __str__(self) -> str:
-        return f"Allocator >> {len(self.online_devices)} online, {len(self.offline_devices)} offline."
+        s = "Allocator\n"
+        for d, count in self.working_counters.items():
+            s += f"\t{d.name}({d.tag}) :: online for {count} steps\n"
+        return s
