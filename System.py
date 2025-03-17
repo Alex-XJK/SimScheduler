@@ -122,7 +122,7 @@ class System:
 
         # End while
         logging.info(f"Simulation ended at time {self.env.now}")
-        self.completed_jobs = [job for device in self.devices for job in device.scheduler.get_finished_jobs()]
+        self.completed_jobs = [job for device in self.allocator.all_devices for job in device.scheduler.get_finished_jobs()]
 
 
     def report_stats(self) -> SysReport:

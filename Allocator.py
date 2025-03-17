@@ -103,6 +103,10 @@ class Allocator:
         else:
             return False
 
+    @property
+    def all_devices(self) -> list[Device]:
+        return self.online_devices + self.offline_devices
+
     def __str__(self) -> str:
         s = "Allocator\n"
         for d, count in self.working_counters.items():
