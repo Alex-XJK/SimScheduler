@@ -1,12 +1,11 @@
-import simpy
 import logging
 from dataclasses import dataclass
 
-from Generator import Generator
+from Generators.BaseGenerator import Generator
 from Device import Device
-from GlobalScheduler import GlobalScheduler
+from Schedulers.GlobalScheduler import GlobalScheduler
 from Job import Job
-
+from Allocator import Allocator
 
 @dataclass
 class SysReport:
@@ -73,15 +72,16 @@ class System:
     The main wrapper class for the system.
     """
 
-    def __init__(self, env, generator : Generator, devices: list[Device], global_scheduler: GlobalScheduler):
+    def __init__(self, env, generator: Generator, devices: list[Device], global_scheduler: GlobalScheduler):
         self.env = env
 
-        self.generator = generator
-        self.devices = devices
-        self.global_scheduler = global_scheduler
+        self.generator: Generator = generator
+        self.devices: list[Device] = devices
+        self.global_scheduler: GlobalScheduler = global_scheduler
+        self.allocator: Allocator = Allocator(self.global_scheduler, self.devices)
 
         # Bookkeeping for completed jobs
-        self.completed_jobs = []
+        self.completed_jobs: list[Job] = []
 
 
     def run_simulation(self, max_time=1000):
@@ -109,17 +109,20 @@ class System:
                 s += f"]"
                 logging.debug(s)
 
-            # 4. Check if we are done on all devices and the generator
+            # 4. Invoke Allocator to check if we need to online/offline devices
+            self.allocator.step()
+
+            # 5. Check if we are done on all devices and the generator
             if self.generator.is_finished and all(device.is_finished for device in self.devices):
                 logging.info("All devices and generator are finished.")
                 break
 
-            # 5. Advance simulation time by 1 “second”
+            # 6. Advance simulation time by 1 “second”
             yield self.env.timeout(1)
 
         # End while
         logging.info(f"Simulation ended at time {self.env.now}")
-        self.completed_jobs = [job for device in self.devices for job in device.scheduler.get_finished_jobs()]
+        self.completed_jobs = [job for device in self.allocator.all_devices for job in device.scheduler.get_finished_jobs()]
 
 
     def report_stats(self) -> SysReport:

@@ -2,12 +2,11 @@ import simpy
 import logging
 from System import System, SysReport
 from Device import Device
-from GlobalScheduler import GlobalScheduler
+from Schedulers.GlobalScheduler import GlobalScheduler
 from Generators.Loader import CSVSource, CSVGenerator
 from Schedulers.FCFS import FCFS
 from Schedulers.RR import RR
 from Schedulers.FCFS_prefill import FCFSPre
-from Schedulers.RR_prefill import RRPre
 from Schedulers.Hybrid_FR import HybridFR
 
 
@@ -20,7 +19,7 @@ def main() -> SysReport:
     dev_p1 = Device(env,
                     name="Prefill_1", tag=Device.Mode.PREFILL,
                     memory_capacity=100000, memory_kwargs={'threshold': 0.95},
-                    scheduler_cls=FCFSPre, scheduler_kwargs={'chunk_size': 256, 'chunk_time': 5})
+                    scheduler_cls=FCFSPre, scheduler_kwargs={'chunk_size': 512, 'chunk_time': 5})
     # Our new fancy decode device
     dev_d1 = Device(env,
                     name="Decode_1", tag=Device.Mode.DECODE,
@@ -62,8 +61,9 @@ def main() -> SysReport:
     env.run()
 
     # 7. Print results
-    print(global_sched)
-    print(system)
+    print(system.allocator)
+    print(system.global_scheduler)
+    print(system.generator)
     return system.report_stats()
 
 

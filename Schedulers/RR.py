@@ -1,6 +1,5 @@
-import simpy
 import logging
-from Scheduler import Scheduler
+from Schedulers.BaseScheduler import Scheduler
 
 class RR(Scheduler):
     """

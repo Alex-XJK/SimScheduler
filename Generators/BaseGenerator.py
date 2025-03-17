@@ -1,10 +1,9 @@
-import simpy
 import random
 import logging
 from abc import abstractmethod
 
-from GlobalScheduler import GlobalScheduler
-from Job import Job
+from Schedulers.GlobalScheduler import GlobalScheduler
+
 
 class Generator:
     """

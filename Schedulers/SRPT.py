@@ -1,7 +1,6 @@
 import logging
-import simpy
 
-from Scheduler import Scheduler
+from Schedulers.BaseScheduler import Scheduler
 from Job import Job
 
 

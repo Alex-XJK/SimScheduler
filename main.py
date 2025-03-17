@@ -86,7 +86,7 @@ def main(sched_class="FCFS", rr_time_slice=10, batch_size=4, **kwargs) -> SysRep
     print(system)
     return system.report_stats()
 
-
+# This is deprecated after v2.1.0, use the multi-device version in md_main.py
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 

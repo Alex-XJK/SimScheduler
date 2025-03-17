@@ -1,7 +1,6 @@
 from enum import Enum
 
 from Memory import Memory
-from Scheduler import Scheduler
 from Job import Job
 
 

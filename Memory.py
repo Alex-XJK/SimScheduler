@@ -10,7 +10,7 @@ class Memory:
         self.threshold = threshold
         self.peak_usage = 0
 
-    def request(self, amount):
+    def request(self, amount) -> bool:
         if amount > self.vacancies:
             return False
         else:
@@ -19,7 +19,7 @@ class Memory:
                 self.peak_usage = self.occupied_tokens
             return True
 
-    def release(self, amount):
+    def release(self, amount) -> int:
         self.vacancies += amount
         if self.vacancies > self.capacity:
             raise ValueError("Releasing more tokens than capacity.")

@@ -105,6 +105,48 @@ class Scheduler:
         """
         raise NotImplementedError("Subclasses should implement pick_next_task()")
 
+    def pick_movable_job(self, expected_stages: list[Job.State]) -> Job|None:
+        """
+        Pick a job that can be moved to another device.
+        TODO: Not quite sure our preference for moving jobs yet.
+        :return: The job to move or None if no job can be moved.
+        """
+        possible_jobs = None
+        for i, job in enumerate(self.run_queue):
+            # If job is not in the expected stage, skip
+            if job.state not in expected_stages:
+                continue
+            # First {batch} jobs are probably already running
+            if i < self.batch:
+                continue
+            # We prefer to move jobs that are not yet running (to reduce memory transfer)
+            if job.current_size == 0:
+                return job
+            # If we have not found a job that is not running yet, we will pick the first running job
+            else:
+                if possible_jobs is None:
+                    possible_jobs = job
+        return possible_jobs
+
+    def preempt_job(self, job : Job) -> bool:
+        """
+        Force a job to be preempted.
+        :param job: The job to preempt.
+        :return: True if job was preempted, False otherwise.
+        """
+        if job not in self.run_queue:
+            return False
+        # If job is not running, we can just remove it
+        if job.current_size == 0:
+            self.run_queue.remove(job)
+            return True
+        # If job is running, we need to treat it as a swap out and release memory
+        self.memory.release(job.current_size)
+        job.swap_size = job.current_size
+        job.current_size = 0
+        self.run_queue.remove(job)
+        return True
+
     def _get_expected_memory(self):
         """
         Calculate the expected memory usage of the run queue.
