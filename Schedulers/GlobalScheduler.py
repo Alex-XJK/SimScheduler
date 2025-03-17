@@ -27,6 +27,24 @@ class GlobalScheduler:
         self.queue: list[Job] = []
         self.statistics = dict.fromkeys(self.devices, 0)
 
+    def add_device(self, device: Device):
+        """
+        Add a device to the global scheduler.
+        """
+        self.devices.append(device)
+        device.set_global_scheduler(self)
+        if device not in self.statistics:
+            self.statistics[device] = 0
+        logging.info(f"G-S >> Added device '{device.name}'")
+
+    def remove_device(self, device: Device):
+        """
+        Remove a device from the global scheduler.
+        """
+        if device in self.devices:
+            self.devices.remove(device)
+            logging.info(f"G-S >> Removed device '{device.name}'")
+
     def _dispatch_job(self, job: Job) -> Device|None:
         """
         Select a device based on the current workload and dispatch the job to it.
@@ -102,6 +120,16 @@ class GlobalScheduler:
         for job in self.queue:
             if self._dispatch_job(job) is not None:
                 self.queue.remove(job)
+
+    @property
+    def all_devices_busy(self) -> bool:
+        """
+        Check if all devices are busy.
+
+        Notice:
+        - 1.5 is the threshold for busy devices for now. 1.5 = (0.02 * 50 Jobs) + (1.0 * Half Memory Used)
+        """
+        return all(d.workload > 1.5 for d in self.devices)
 
     def _get_capable_devices(self, job: Job) -> list[Device]:
         """
