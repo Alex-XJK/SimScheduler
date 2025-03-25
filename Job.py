@@ -32,6 +32,7 @@ class Job:
         self.prefill_finish_time = None
         self.decode_start_time = None
         self.decode_finish_time = None
+        self.execution_time = 0
 
         # Only used for SRPT scheduler
         self.last_scheduled_time = None
@@ -50,11 +51,15 @@ class Job:
         return None
 
     def advance(self, curr_time):
-        if self.decode_start_time is None:
-            self.decode_start_time = curr_time
+        self.execution_time += 1
 
         if self.state == Job.State.DECODE:
+            if self.decode_start_time is None:
+                self.decode_start_time = curr_time
             self.current_size += 1
+        elif self.state == Job.State.PREFILL:
+            if self.prefill_start_time is None:
+                self.prefill_start_time = curr_time
 
     def __repr__(self):
         if self.is_finished or self.state == Job.State.FINISHED:

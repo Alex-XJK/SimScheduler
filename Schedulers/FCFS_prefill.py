@@ -27,7 +27,7 @@ class FCFSPre(Scheduler):
                 logging.debug(f"{self.device.name} >> Job({self.cur_job.job_id}) prefill complete.")
                 # Cleanup local resources
                 self.memory.release(self.cur_job.init_size)
-                self.run_queue.remove(self.cur_job)  # I did not use remove_job() because it's not finished yet.
+                self.remove_job(self.cur_job)
                 # Hand back to the global scheduler
                 self.cur_job.state = Job.State.DECODE
                 self.cur_job.prefill_finish_time = self.env.now
@@ -38,6 +38,7 @@ class FCFSPre(Scheduler):
                 self.cur_job_expected_time = 0
             else:
                 self.cur_job_time += 1
+                self.cur_job.advance(self.env.now)
                 logging.debug(f"{self.device.name} >> Job({self.cur_job.job_id}) prefilling for {self.cur_job_time}/{self.cur_job_expected_time} steps...")
                 return [self.cur_job]
 
@@ -54,7 +55,6 @@ class FCFSPre(Scheduler):
             logging.warning(f"{self.device.name} >> Job({self.cur_job.job_id}) failed to allocate {self.cur_job.init_size} tokens.")
             return []
 
-        self.cur_job.prefill_start_time = self.env.now
         self.cur_job.state = Job.State.PREFILL
         self.cur_job.advance(self.env.now)
         self.cur_job_time = 0

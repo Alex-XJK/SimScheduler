@@ -26,6 +26,7 @@ class GlobalScheduler:
         for d in self.devices:
             d.set_global_scheduler(self)
         self.queue: list[Job] = []
+        self.finished_jobs: list[Job] = []
         self.statistics = dict.fromkeys(self.devices, 0)
 
     def add_device(self, device: Device):
