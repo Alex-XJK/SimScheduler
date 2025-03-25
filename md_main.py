@@ -38,7 +38,7 @@ def main() -> SysReport:
     dev_list = [dev_p1, dev_d1, dev_d2, dev_m1]
 
     # 3. Define Global Scheduler
-    global_sched = GlobalScheduler(devices=dev_list, perform_load_balance=False)
+    global_sched = GlobalScheduler(devices=dev_list, load_balance_round=1)
 
     # 4. Define Generator
     generator = CSVGenerator(
