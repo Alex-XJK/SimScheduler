@@ -16,11 +16,12 @@ class GlobalScheduler:
     Global scheduler that dispatches jobs to a pool of devices.
     """
 
-    def __init__(self, devices: list[Device]):
+    def __init__(self, devices: list[Device], perform_load_balance=False):
         """
         Parameters:
           - devices: A list of Device instances.
         """
+        self.perform_load_balance = perform_load_balance
         self.devices = devices
         for d in self.devices:
             d.set_global_scheduler(self)
@@ -115,7 +116,8 @@ class GlobalScheduler:
         Main step function called by the system.
         """
         # Proactively load balance the devices
-        self.proactively_load_balance()
+        if self.perform_load_balance:
+            self.proactively_load_balance()
         # Dispatch jobs in the queue
         for job in self.queue:
             if self._dispatch_job(job) is not None:
