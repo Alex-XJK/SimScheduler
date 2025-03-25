@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 
 from Memory import Memory
@@ -24,6 +25,8 @@ class Device:
         DECODE  = "Decode Only"
         MIXED   = "Mixed Operations"
 
+    WARM_UP_TIME = 10
+
     def __init__(self, env, memory_capacity,memory_kwargs, scheduler_cls, scheduler_kwargs, name="Device", tag=Mode.DECODE):
         self.env = env
         self.name = name
@@ -31,6 +34,7 @@ class Device:
         self.memory = Memory(env, capacity=memory_capacity, **memory_kwargs)
         self.scheduler = scheduler_cls(env, device=self, memory=self.memory, **scheduler_kwargs)
         self.global_scheduler = None
+        self.warm_up_remaining = 0
 
     def set_global_scheduler(self, global_scheduler):
         self.global_scheduler = global_scheduler
@@ -39,6 +43,10 @@ class Device:
         """
         Add a job to the device's scheduler.
         """
+        # Our device needs some warm-up time before it can start receiving jobs.
+        if self.is_warming_up:
+            return False
+
         if not self.job_state_supported(job):
             return False
         return self.scheduler.add_job(job)
@@ -47,6 +55,12 @@ class Device:
         """
         Advance the device's scheduler by one step.
         """
+        # Our device needs some warm-up time before it can start processing jobs.
+        if self.is_warming_up:
+            logging.debug(f"{self.name} >> Warming up... {self.warm_up_remaining} steps remaining.")
+            self.warm_up_remaining -= 1
+            return []
+
         return self.scheduler.step()
 
     @property
@@ -56,6 +70,16 @@ class Device:
         The minimum value the better in this case.
         """
         return 0.02 * self.scheduler.num_jobs + 1.0 * (self.memory.occupied_tokens / self.memory.safe_capacity)
+
+    def warm_up(self):
+        """
+        Warm up the device.
+        """
+        self.warm_up_remaining = Device.WARM_UP_TIME
+
+    @property
+    def is_warming_up(self) -> bool:
+        return self.warm_up_remaining > 0
 
     @property
     def is_finished(self) -> bool:

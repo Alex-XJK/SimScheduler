@@ -38,6 +38,10 @@ class Allocator:
             # Register working counters
             self.working_counters[device] += 1
 
+            # Skip workload check if device is warming up
+            if device.is_warming_up:
+                continue
+
             # Update idle counter
             if device.workload < 1e-6:
                 self.idle_counters[device] += 1
@@ -76,6 +80,7 @@ class Allocator:
             self.online_devices.append(device)
             self.device_capable_counts[device.tag] += 1
             self.idle_counters[device] = 0
+            device.warm_up()
             self.global_scheduler.add_device(device)
 
     def _okay_to_offline(self, device: Device) -> bool:
@@ -105,10 +110,17 @@ class Allocator:
 
     @property
     def all_devices(self) -> list[Device]:
+        """
+        Return all devices, online and offline.
+        This is used to break the Python's shadow copy of the devices list.
+        """
         return self.online_devices + self.offline_devices
 
     def __str__(self) -> str:
+        total = 0
         s = "Allocator\n"
         for d, count in self.working_counters.items():
             s += f"\t{d.name}({d.tag}) :: online for {count} steps\n"
+            total += count
+        s += f"\tTotal Device Time: {total}\n"
         return s
