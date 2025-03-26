@@ -38,7 +38,6 @@ class Scheduler:
             self.remove_job(job)
             job.state = Job.State.FINISHED
             self.device.global_scheduler.finished_jobs.append(job)
-            self.device.debug_finished_count += 1
 
         if not self.run_queue:
             logging.info(f"{self.device.name} >> No jobs to run - Empty run queue.")

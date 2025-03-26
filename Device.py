@@ -35,8 +35,6 @@ class Device:
         self.scheduler = scheduler_cls(env, device=self, memory=self.memory, **scheduler_kwargs)
         self.global_scheduler = None
         self.warm_up_remaining = 0
-        self.debug_finished_count = 0
-
 
     def set_global_scheduler(self, global_scheduler):
         self.global_scheduler = global_scheduler
