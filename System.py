@@ -2,7 +2,6 @@ import logging
 from dataclasses import dataclass
 
 from Generators.BaseGenerator import Generator
-from Device import Device
 from Schedulers.GlobalScheduler import GlobalScheduler
 from Job import Job
 from Allocator import Allocator
@@ -72,13 +71,12 @@ class System:
     The main wrapper class for the system.
     """
 
-    def __init__(self, env, generator: Generator, devices: list[Device], global_scheduler: GlobalScheduler):
+    def __init__(self, env, tasks_generator: Generator, global_scheduler: GlobalScheduler, devices_allocator: Allocator):
         self.env = env
 
-        self.generator: Generator = generator
-        self.devices: list[Device] = devices
+        self.generator: Generator = tasks_generator
         self.global_scheduler: GlobalScheduler = global_scheduler
-        self.allocator: Allocator = Allocator(self.global_scheduler, self.devices)
+        self.allocator: Allocator = devices_allocator
 
         # Bookkeeping for completed jobs
         self.completed_jobs: list[Job] = []
@@ -96,7 +94,7 @@ class System:
             self.global_scheduler.step()
 
             # 3. Instruct every device to work on their jobs
-            for device in self.devices:
+            for device in self.allocator.online_devices:
                 selected_jobs = device.step()
                 s = f"{device.name} :: ["
                 for job in selected_jobs:
@@ -223,6 +221,6 @@ class System:
     def __str__(self):
         s = f"System Report\n"
         s += f"\t{self.generator}\n"
-        for device in self.devices:
+        for device in self.allocator.all_devices:
             s += f"\t{device}\n"
         return s

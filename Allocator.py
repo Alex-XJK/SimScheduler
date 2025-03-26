@@ -12,7 +12,7 @@ class Allocator:
         """
         :param global_scheduler: The GlobalScheduler instance.
         :param all_devices: A list of all possible devices (initially online or offline).
-        :param idle_threshold: Number of consecutive idle steps after which to offline a device.
+        :param idle_threshold: Number of consecutive idle steps after which to offline a device. -1 to disable.
         """
         self.global_scheduler: GlobalScheduler = global_scheduler
         self.online_devices: list[Device] = list(all_devices)
@@ -42,6 +42,10 @@ class Allocator:
             if device.is_warming_up:
                 continue
 
+            # Skip dynamic management if user set idle_threshold to -1
+            if self.idle_threshold == -1:
+                continue
+
             # Update idle counter
             if device.workload < 1e-6:
                 self.idle_counters[device] += 1
@@ -54,7 +58,7 @@ class Allocator:
                     self.offline_device(device)
 
         # 2. If workload is high, bring some offline devices online
-        if self.global_scheduler.all_devices_busy and self.offline_devices:
+        if self.global_scheduler.all_devices_busy and self.offline_devices and self.idle_threshold >= 0:
             device_to_online = self.offline_devices[0]  # pick some device
             self.online_device(device_to_online)
 
@@ -123,4 +127,6 @@ class Allocator:
             s += f"\t{d.name}({d.tag}) :: online for {count} steps\n"
             total += count
         s += f"\tTotal Device Time: {total}\n"
+        dyn_status = f"{self.idle_threshold} idle steps" if self.idle_threshold >= 0 else "Disabled"
+        s += f"\tDynamic Management: {dyn_status}\n"
         return s
