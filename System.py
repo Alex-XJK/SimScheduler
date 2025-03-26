@@ -113,7 +113,11 @@ class System:
             self.allocator.step()
 
             # 5. Check if we are done on all devices and the generator
-            if self.generator.is_finished and all(device.is_finished for device in self.devices):
+            if (
+                    self.generator.is_finished and
+                    len(self.global_scheduler.queue) == 0 and
+                    all(device.is_finished for device in self.allocator.all_devices)
+            ):
                 logging.info("All devices and generator are finished.")
                 break
 
@@ -122,7 +126,7 @@ class System:
 
         # End while
         logging.info(f"Simulation ended at time {self.env.now}")
-        self.completed_jobs = [job for device in self.allocator.all_devices for job in device.scheduler.get_finished_jobs()]
+        self.completed_jobs = self.global_scheduler.finished_jobs
 
 
     def report_stats(self) -> SysReport:

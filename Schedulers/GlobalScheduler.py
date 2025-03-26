@@ -26,6 +26,7 @@ class GlobalScheduler:
         for d in self.devices:
             d.set_global_scheduler(self)
         self.queue: list[Job] = []
+        self.finished_jobs: list[Job] = []
         self.statistics = dict.fromkeys(self.devices, 0)
 
     def add_device(self, device: Device):
@@ -82,7 +83,7 @@ class GlobalScheduler:
         moved_jobs = 0
         for _ in range(self.load_balance_round):
             # Check Prefill stage jobs from Prefill-only or Mixed Devices
-            prefill_devices = [d for d in self.devices if (d.tag == Device.Mode.PREFILL or d.tag == Device.Mode.MIXED)]
+            prefill_devices = [d for d in self.devices if (d.tag == Device.Mode.PREFILL or d.tag == Device.Mode.MIXED) and not d.is_warming_up]
             sorted_pd = sorted(prefill_devices, key=lambda d: d.workload, reverse=True)
             lightest_prefill = sorted_pd[-1]
             for heavier_prefill in sorted_pd:
@@ -94,11 +95,11 @@ class GlobalScheduler:
                             lightest_prefill.add_job(victim_job)
                     ):
                         moved_jobs += 1
-                        logging.debug(f"G-S >> Moving Job({victim_job.job_id}) from '{heavier_prefill.name}' to '{lightest_prefill.name}'")
+                        logging.debug(f"G-S >> Moving {victim_job.job_id}(P) from '{heavier_prefill.name}' to '{lightest_prefill.name}'")
                         break
 
             # Check Decode stage jobs from Decode-only or Mixed Devices
-            decode_devices = [d for d in self.devices if (d.tag == Device.Mode.DECODE or d.tag == Device.Mode.MIXED)]
+            decode_devices = [d for d in self.devices if (d.tag == Device.Mode.DECODE or d.tag == Device.Mode.MIXED) and not d.is_warming_up]
             sorted_dd = sorted(decode_devices, key=lambda d: d.workload, reverse=True)
             lightest_decode = sorted_dd[-1]
             for heavier_decode in sorted_dd:
@@ -110,7 +111,7 @@ class GlobalScheduler:
                             lightest_decode.add_job(victim_job)
                     ):
                         moved_jobs += 1
-                        logging.debug(f"G-S >> Moving Job({victim_job.job_id}) from '{heavier_decode.name}' to '{lightest_decode.name}'")
+                        logging.debug(f"G-S >> Moving {victim_job.job_id}(D) from '{heavier_decode.name}' to '{lightest_decode.name}'")
         return moved_jobs
 
     def step(self):

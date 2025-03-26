@@ -47,7 +47,7 @@ class RRPre(Scheduler):
                 logging.debug(f"{self.device.name} >> Job({self.cur_progress.job.job_id}) prefill complete.")
                 # Cleanup local resources
                 self.memory.release(self.cur_progress.job.init_size)
-                self.run_queue.remove(self.cur_progress)
+                self.remove_job(self.cur_progress.job)
                 # Hand back to the global scheduler
                 self.cur_progress.job.state = Job.State.DECODE
                 self.cur_progress.job.prefill_finish_time = self.env.now
