@@ -17,10 +17,6 @@ class Scheduler:
         self.memory : Memory = memory
         self.batch : int = batch
         self.run_queue : list[Job] = []
-        self.finished_jobs : list[Job] = []
-
-    def get_finished_jobs(self) -> list[Job]:
-        return self.finished_jobs
 
     def add_job(self, job : Job) -> bool:
         self.run_queue.append(job)
@@ -29,7 +25,6 @@ class Scheduler:
     def remove_job(self, job : Job):
         if job in self.run_queue:
             self.run_queue.remove(job)
-            self.finished_jobs.append(job)
         else:
             raise ValueError("Job not in run queue.")
 
@@ -41,6 +36,8 @@ class Scheduler:
         for job in finished_jobs:
             self.memory.release(job.current_size)
             self.remove_job(job)
+            job.state = Job.State.FINISHED
+            self.device.global_scheduler.finished_jobs.append(job)
 
         if not self.run_queue:
             logging.info(f"{self.device.name} >> No jobs to run - Empty run queue.")

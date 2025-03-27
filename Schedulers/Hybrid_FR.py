@@ -13,12 +13,6 @@ class HybridFR(Scheduler):
         self.prefill_sched = FCFSPre(env, device, memory, chunk_size, chunk_time)
         self.decode_sched = RR(env, device, memory, collocate_threshold, time_slice)
 
-    def get_finished_jobs(self) -> list[Job]:
-        """
-        Override the get_finished_jobs method to return the finished jobs from decode scheduler.
-        """
-        return self.decode_sched.get_finished_jobs()
-
 
     def add_job(self, job : Job) -> bool:
         """

@@ -12,7 +12,7 @@ class Allocator:
         """
         :param global_scheduler: The GlobalScheduler instance.
         :param all_devices: A list of all possible devices (initially online or offline).
-        :param idle_threshold: Number of consecutive idle steps after which to offline a device.
+        :param idle_threshold: Number of consecutive idle steps after which to offline a device. -1 to disable.
         """
         self.global_scheduler: GlobalScheduler = global_scheduler
         self.online_devices: list[Device] = list(all_devices)
@@ -38,6 +38,14 @@ class Allocator:
             # Register working counters
             self.working_counters[device] += 1
 
+            # Skip workload check if device is warming up
+            if device.is_warming_up:
+                continue
+
+            # Skip dynamic management if user set idle_threshold to -1
+            if self.idle_threshold == -1:
+                continue
+
             # Update idle counter
             if device.workload < 1e-6:
                 self.idle_counters[device] += 1
@@ -50,7 +58,7 @@ class Allocator:
                     self.offline_device(device)
 
         # 2. If workload is high, bring some offline devices online
-        if self.global_scheduler.all_devices_busy and self.offline_devices:
+        if self.global_scheduler.all_devices_busy and self.offline_devices and self.idle_threshold >= 0:
             device_to_online = self.offline_devices[0]  # pick some device
             self.online_device(device_to_online)
 
@@ -76,6 +84,7 @@ class Allocator:
             self.online_devices.append(device)
             self.device_capable_counts[device.tag] += 1
             self.idle_counters[device] = 0
+            device.warm_up()
             self.global_scheduler.add_device(device)
 
     def _okay_to_offline(self, device: Device) -> bool:
@@ -105,10 +114,19 @@ class Allocator:
 
     @property
     def all_devices(self) -> list[Device]:
+        """
+        Return all devices, online and offline.
+        This is used to break the Python's shadow copy of the devices list.
+        """
         return self.online_devices + self.offline_devices
 
     def __str__(self) -> str:
+        total = 0
         s = "Allocator\n"
         for d, count in self.working_counters.items():
             s += f"\t{d.name}({d.tag}) :: online for {count} steps\n"
+            total += count
+        s += f"\tTotal Device Time: {total}\n"
+        dyn_status = f"{self.idle_threshold} idle steps" if self.idle_threshold >= 0 else "Disabled"
+        s += f"\tDynamic Management: {dyn_status}\n"
         return s

@@ -1,5 +1,7 @@
 import simpy
 import logging
+
+from Allocator import Allocator
 from System import System, SysReport
 from Device import Device
 from Schedulers.GlobalScheduler import GlobalScheduler
@@ -37,8 +39,9 @@ def main() -> SysReport:
                     scheduler_cls=HybridFR, scheduler_kwargs={'chunk_size': 128, 'chunk_time': 5, 'collocate_threshold': 1, 'time_slice': 1})
     dev_list = [dev_p1, dev_d1, dev_d2, dev_m1]
 
-    # 3. Define Global Scheduler
-    global_sched = GlobalScheduler(devices=dev_list)
+    # 3. Define Global Scheduler and Allocator
+    global_sched = GlobalScheduler(devices=dev_list, load_balance_round=1)
+    allocator = Allocator(global_scheduler=global_sched, all_devices=dev_list, idle_threshold=50)
 
     # 4. Define Generator
     generator = CSVGenerator(
@@ -54,7 +57,7 @@ def main() -> SysReport:
     )
 
     # 5. Create the System
-    system = System(env, generator=generator, devices=dev_list, global_scheduler=global_sched)
+    system = System(env, tasks_generator=generator, global_scheduler=global_sched, devices_allocator=allocator)
 
     # 6. Run the simulation
     env.process(system.run_simulation(max_time=1000000))
